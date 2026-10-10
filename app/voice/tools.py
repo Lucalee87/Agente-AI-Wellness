@@ -7,7 +7,7 @@ Le definizioni (JSON Schema) sono condivise tra Vapi e il simulatore testuale;
 import logging
 from datetime import date
 
-from .. import centers, db, leads
+from .. import calendars, centers, db, leads
 
 log = logging.getLogger(__name__)
 
@@ -101,24 +101,33 @@ def _prenota_consulenza(lead: dict, args: dict) -> str:
     except ValueError:
         return "Orario non valido: usa il formato YYYY-MM-DDTHH:MM."
     key = start.strftime("%Y-%m-%dT%H:%M")
+    centro = cfg.centri[centro_id]
+    sync = "pending" if calendars.backend_for(centro) else None
     with db.tx() as c:
         if not centers.is_slot_free(centro_id, start):
             return "Questo slot non è più disponibile. Usa trova_disponibilita e proponi un altro orario."
+        # Se il cliente aveva già una consulenza, questa la sostituisce
+        replaced = [r[0] for r in c.execute(
+            "SELECT id FROM appointments WHERE lead_id = ? AND status = 'confermato'", (lead["id"],)
+        )]
         c.execute(
             "UPDATE appointments SET status = 'sostituito' WHERE lead_id = ? AND status = 'confermato'",
             (lead["id"],),
         )
-        c.execute(
-            "INSERT INTO appointments (lead_id, centro_id, start_at, created_at) VALUES (?, ?, ?, ?)",
-            (lead["id"], centro_id, key, db.now_utc()),
-        )
+        appointment_id = c.execute(
+            "INSERT INTO appointments (lead_id, centro_id, start_at, created_at, calendar_sync) VALUES (?, ?, ?, ?, ?)",
+            (lead["id"], centro_id, key, db.now_utc(), sync),
+        ).lastrowid
         fields = {"status": db.BOOKED, "centro_id": centro_id, "next_attempt_at": None}
         if args.get("obiettivo"):
             fields["obiettivo"] = args["obiettivo"]
         if args.get("note"):
             fields["note"] = args["note"]
         db.update_lead(lead["id"], **fields)
-    centro = cfg.centri[centro_id]
+    # Scrittura nel calendario: se fallisce, la coda riprova in automatico (lo slot resta comunque bloccato)
+    for old_id in replaced:
+        calendars.sync_appointment(old_id)
+    calendars.sync_appointment(appointment_id)
     leads.notify("consulenza_prenotata", lead["id"], centro=centro.nome, data_ora=key)
     return f"Prenotazione confermata: {centers.format_it(start)} presso {centro.nome}, {centro.indirizzo}."
 

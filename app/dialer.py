@@ -4,7 +4,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import centers, db, leads
+from . import calendars, centers, db, leads
 from .config import settings
 from .voice import vapi
 
@@ -66,6 +66,7 @@ def release_stuck_calls() -> None:
 def tick() -> int:
     """Un giro della coda. Restituisce il numero di chiamate avviate."""
     release_stuck_calls()
+    calendars.sync_pending()
     if not centers.is_calling_time():
         return 0
     free = settings.max_concurrent_calls - active_calls()

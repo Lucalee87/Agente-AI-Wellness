@@ -49,7 +49,10 @@ CREATE TABLE IF NOT EXISTS appointments (
     centro_id TEXT NOT NULL,
     start_at TEXT NOT NULL,            -- ora locale del centro, YYYY-MM-DDTHH:MM
     created_at TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'confermato'
+    status TEXT NOT NULL DEFAULT 'confermato',
+    calendar_event_id TEXT,            -- id dell'evento nel calendario esterno (Google, gestionale)
+    calendar_sync TEXT,                -- pending | ok | error | deleted (NULL = nessun calendario)
+    calendar_error TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_appt_slot ON appointments (centro_id, start_at);
 """
@@ -83,7 +86,23 @@ def connect(path: str | None = None) -> sqlite3.Connection:
         _conn.row_factory = sqlite3.Row
         _conn.execute("PRAGMA foreign_keys = ON")
         _conn.executescript(SCHEMA)
+        _migrate(_conn)
         return _conn
+
+
+# Colonne aggiunte dopo la prima versione: le creiamo sui database già esistenti
+_ADDED_COLUMNS = {
+    "appointments": {"calendar_event_id": "TEXT", "calendar_sync": "TEXT", "calendar_error": "TEXT"},
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, cols in _ADDED_COLUMNS.items():
+        existing = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for name, ddl in cols.items():
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
+    conn.commit()
 
 
 def ensure_connected() -> None:

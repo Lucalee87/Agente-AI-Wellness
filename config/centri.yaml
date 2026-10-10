@@ -33,6 +33,8 @@ centri:
     # ID dei moduli lead per associare automaticamente il lead al centro
     meta_form_ids: []
     google_form_ids: []
+    # ID del Google Calendar del centro (vuoto = calendario solo interno)
+    google_calendar_id: ""
 
   - id: salerno
     nome: "FitClub Salerno"
@@ -46,3 +48,5 @@ centri:
       sab: ["10:00-13:00"]
     meta_form_ids: []
     google_form_ids: []
+    # ID del Google Calendar del centro (vuoto = calendario solo interno)
+    google_calendar_id: ""

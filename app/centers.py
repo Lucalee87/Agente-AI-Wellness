@@ -5,10 +5,14 @@ from datetime import date, datetime, time, timedelta
 from functools import lru_cache
 from zoneinfo import ZoneInfo
 
+import logging
+
 import yaml
 
 from . import db
 from .config import settings
+
+log = logging.getLogger(__name__)
 
 GIORNI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
 GIORNI_ESTESI = ["lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato", "domenica"]
@@ -26,6 +30,7 @@ class Centro:
     orari_consulenze: dict[str, list[str]]
     meta_form_ids: list[str]
     google_form_ids: list[str]
+    google_calendar_id: str = ""
 
 
 @dataclass
@@ -55,6 +60,7 @@ def load_config(path: str | None = None) -> Config:
             orari_consulenze=c.get("orari_consulenze", {}),
             meta_form_ids=[str(x) for x in c.get("meta_form_ids", [])],
             google_form_ids=[str(x) for x in c.get("google_form_ids", [])],
+            google_calendar_id=str(c.get("google_calendar_id") or ""),
         )
     return Config(
         brand=raw.get("brand", {}),
@@ -130,13 +136,37 @@ def _fmt_key(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M")
 
 
-def booked_count(centro_id: str, start_at: str) -> int:
+def _occupancy(centro: Centro, start: datetime, end: datetime):
+    """Restituisce una funzione slot -> numero di posti occupati nell'intervallo [start, end).
+
+    Somma gli impegni del calendario esterno (Google Calendar, gestionale...) e le
+    prenotazioni locali non ancora sincronizzate, così non contiamo due volte
+    gli appuntamenti che abbiamo già scritto nel calendario.
+    """
+    from . import calendars
+
+    tz = load_config().tz
+    backend = calendars.backend_for(centro)
+    busy: list[tuple[datetime, datetime]] = []
+    if backend is not None:
+        try:
+            busy = backend.busy(centro, start, end)
+        except Exception:
+            log.exception("Calendario del centro %s non raggiungibile: uso solo le prenotazioni locali", centro.id)
+    query = "SELECT start_at FROM appointments WHERE centro_id = ? AND status = 'confermato' AND start_at >= ? AND start_at < ?"
+    if backend is not None:
+        query += " AND calendar_event_id IS NULL"
+    step = timedelta(minutes=centro.durata_consulenza_min)
     with db.tx() as c:
-        row = c.execute(
-            "SELECT COUNT(*) FROM appointments WHERE centro_id = ? AND start_at = ? AND status = 'confermato'",
-            (centro_id, start_at),
-        ).fetchone()
-    return row[0]
+        for (s,) in c.execute(query, (centro.id, _fmt_key(start), _fmt_key(end))):
+            s_dt = datetime.fromisoformat(s).replace(tzinfo=tz)
+            busy.append((s_dt, s_dt + step))
+
+    def count(slot: datetime) -> int:
+        slot_end = slot + step
+        return sum(1 for b_start, b_end in busy if b_start < slot_end and b_end > slot)
+
+    return count
 
 
 def free_slots(centro_id: str, from_day: date | None = None, days: int = 7,
@@ -147,12 +177,14 @@ def free_slots(centro_id: str, from_day: date | None = None, days: int = 7,
     now = local_now()
     earliest = now + timedelta(hours=min_notice_hours)
     start_day = max(from_day or now.date(), now.date())
+    window_start = datetime.combine(start_day, time(0, 0), tzinfo=cfg.tz)
+    occupied = _occupancy(centro, window_start, window_start + timedelta(days=days))
     out = []
     for i in range(days):
         for slot in slots_for_day(centro, start_day + timedelta(days=i)):
             if slot < earliest:
                 continue
-            if booked_count(centro_id, _fmt_key(slot)) < centro.posti_per_slot:
+            if occupied(slot) < centro.posti_per_slot:
                 out.append(slot)
                 if len(out) >= limit:
                     return out
@@ -165,7 +197,9 @@ def is_slot_free(centro_id: str, start: datetime) -> bool:
         return False
     if start not in slots_for_day(centro, start.date()):
         return False
-    return booked_count(centro_id, _fmt_key(start)) < centro.posti_per_slot
+    step = timedelta(minutes=centro.durata_consulenza_min)
+    occupied = _occupancy(centro, start - step, start + step)
+    return occupied(start) < centro.posti_per_slot
 
 
 def parse_local(s: str) -> datetime:

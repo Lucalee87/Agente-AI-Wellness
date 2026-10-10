@@ -98,7 +98,23 @@ https://TUO-DOMINIO/consulenza?centro=salerno&src=wa
 {"nome": "Marco", "telefono": "+393331234567", "centro": "napoli-centro", "source": "manychat", "obiettivo": "perdere peso"}
 ```
 
-### 6. Notifiche (facoltativo)
+### 6. Google Calendar
+Ogni consulenza prenotata diventa un evento nel Google Calendar del centro (nome, telefono, obiettivo, note). E viceversa: **gli impegni che lo staff inserisce a mano bloccano gli slot**, così l'agente non propone mai orari occupati.
+
+1. Vai su [console.cloud.google.com](https://console.cloud.google.com), crea un progetto e abilita **Google Calendar API**.
+2. *IAM e amministrazione → Account di servizio* → crea un account di servizio → *Chiavi* → *Aggiungi chiave → JSON*. Salva il file sul server e indica il percorso in `GOOGLE_SERVICE_ACCOUNT_FILE` (oppure incolla il contenuto in `GOOGLE_SERVICE_ACCOUNT_JSON`).
+3. In Google Calendar, apri le impostazioni del calendario di ogni centro → *Condividi con persone specifiche* → aggiungi l'email dell'account di servizio (`...@...iam.gserviceaccount.com`) con il permesso **“Apportare modifiche agli eventi”**.
+4. Copia l'**ID calendario** (Impostazioni → *Integra calendario*) nel campo `google_calendar_id` del centro in `config/centri.yaml`.
+
+Regole utili:
+- un evento segnato **“Occupato”** blocca gli slot che copre; uno **“Disponibile”** no;
+- un evento di **giornata intera “Occupato”** (es. “Chiuso per ferie”) blocca tutto il giorno;
+- se lo staff **cancella** l'evento di una consulenza, lo slot torna libero;
+- se Google non risponde, la prenotazione viene comunque salvata e lo slot resta bloccato: l'evento viene scritto appena Google torna raggiungibile.
+
+Il calendario è collegato tramite un'interfaccia (`app/calendars/`) pensata per aggiungere in seguito il **gestionale della palestra** con le stesse regole.
+
+### 7. Notifiche (facoltativo)
 Imposta `NOTIFY_WEBHOOK_URL` (es. un webhook Zapier/Make/Slack): riceverai un evento a ogni consulenza prenotata, rifiuto o lead irraggiungibile.
 
 ## Aspetti legali (Italia/UE) — da verificare con il tuo consulente
@@ -119,6 +135,7 @@ app/
   leads.py          creazione lead, deduplica, tentativi, notifiche
   dialer.py         coda chiamate e gestione esito di fine chiamata
   centers.py        centri, orari, slot liberi
+  calendars/        calendari esterni (Google Calendar; in futuro il gestionale)
   voice/prompt.py   copione dell'agente
   voice/tools.py    strumenti: trova_disponibilita, prenota_consulenza, registra_esito
   voice/vapi.py     integrazione Vapi
@@ -129,6 +146,6 @@ tests/              test automatici
 ```
 
 ## Prossimi passi possibili
-- Sincronizzare gli appuntamenti con Google Calendar o con il gestionale della palestra.
+- Collegare il gestionale della palestra (stessa interfaccia di Google Calendar).
 - SMS/WhatsApp di conferma e promemoria il giorno prima.
 - Report settimanale: lead → risposte → prenotazioni → presentati, per canale e campagna.

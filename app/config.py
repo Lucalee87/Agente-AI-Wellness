@@ -50,6 +50,8 @@ class Settings:
 
     google_lead_key: str = field(default_factory=lambda: _env("GOOGLE_LEAD_KEY"))
     generic_webhook_token: str = field(default_factory=lambda: _env("GENERIC_WEBHOOK_TOKEN"))
+    google_service_account_file: str = field(default_factory=lambda: _env("GOOGLE_SERVICE_ACCOUNT_FILE"))
+    google_service_account_json: str = field(default_factory=lambda: _env("GOOGLE_SERVICE_ACCOUNT_JSON"))
     notify_webhook_url: str = field(default_factory=lambda: _env("NOTIFY_WEBHOOK_URL"))
 
 
