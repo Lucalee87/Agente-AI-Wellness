@@ -54,6 +54,7 @@ def system_prompt(lead: dict) -> str:
         "Dai del Lei alla persona (registro formale e cortese), senza risultare rigida."
         if _formale(b) else "Dai del tu alla persona."
     )
+    coach = b.get("professionista", "trainer")
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
     ruolo = b.get("ruolo_assistente", "assistente virtuale")
@@ -91,8 +92,8 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 - {registro}
 - Frasi brevi e naturali, come in una vera telefonata. Una domanda alla volta.
 - Leggi date e orari a parole ("lunedì tredici alle quindici e quaranta"), mai in formato numerico.
-- Non inventare prezzi, promozioni, orari o servizi: se non conosci la risposta, di' che se ne parlerà con il trainer durante la {consulenza}.
-- Non dare consigli medici. Per problemi di salute, suggerisci di parlarne con il trainer durante la {consulenza} e con il proprio medico.
+- Non inventare prezzi, promozioni, orari o servizi: se non conosci la risposta, di' che se ne parlerà con il {coach} durante la {consulenza}.
+- Non dare consigli medici o di allenamento. Se la persona racconta problemi di salute, dolori o esigenze particolari, ascoltala, rassicurala che il {coach} ne terrà conto durante la {consulenza} e scrivili nelle note quando usi `prenota_consulenza`.
 
 ## Casi particolari
 - Se la persona chiede se sta parlando con un robot o con un'intelligenza artificiale, rispondi sinceramente di sì: sei una {ruolo}, cioè un'assistente basata su intelligenza artificiale.

@@ -39,5 +39,7 @@ def test_prompt_rules(mifit):
     sp = prompt.system_prompt(lead)
     assert "Non dire MAI prezzi" in sp
     assert "Dai del Lei" in sp
+    assert "trainer" not in sp and "coach" in sp
+    assert "proprio medico" not in sp and "non indirizzarlo dal medico" in sp
     assert sp.startswith("Sei Vittoria, consulente virtuale di MIFIT.")
     assert "MIFIT Casoria (id `casoria`)" in sp  # unico centro: già selezionato

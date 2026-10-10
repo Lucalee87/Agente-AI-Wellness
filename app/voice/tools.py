@@ -46,7 +46,7 @@ TOOL_DEFINITIONS = [
                 "centro_id": {"type": "string"},
                 "data_ora": {"type": "string", "description": "Inizio dello slot, formato YYYY-MM-DDTHH:MM (ora italiana)."},
                 "obiettivo": {"type": "string", "description": "Obiettivo del cliente, in poche parole."},
-                "note": {"type": "string", "description": "Informazioni utili per il trainer (infortuni, esperienza...)."},
+                "note": {"type": "string", "description": "Tutto ciò che il coach deve sapere: problemi fisici, dolori, infortuni, esigenze, esperienza, preferenze."},
             },
             "required": ["centro_id", "data_ora"],
         },

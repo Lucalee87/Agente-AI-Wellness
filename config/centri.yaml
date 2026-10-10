@@ -13,13 +13,16 @@ brand:
   # Come si chiama l'appuntamento che l'agente deve fissare
   nome_consulenza: "valutazione dello stato di forma"
   offerta: "una visita completamente gratuita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
+  # Come si chiama la figura che segue il cliente nel centro
+  professionista: "coach"
   # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
   registro: "lei"
   # Regole che l'agente deve sempre rispettare
   regole:
     - "Non dire MAI prezzi, costi, abbonamenti o cifre, nemmeno indicative o 'a partire da'. Se il cliente insiste, spiega che ogni percorso è personalizzato: solo dopo la valutazione gratuita possiamo capire qual è il percorso giusto e presentare un preventivo su misura."
     - "Sottolinea che la valutazione è completamente gratuita e senza impegno: solo dopo aver visto il preventivo personalizzato il cliente deciderà liberamente se iniziare un percorso con noi."
-    - "Se il cliente chiede come funziona il percorso, spiega che è un allenamento personalizzato con un trainer, focalizzato su postura e ricomposizione corporea, e che i dettagli si definiscono insieme durante la valutazione."
+    - "Se il cliente chiede come funziona il percorso, spiega che è un allenamento personalizzato con un coach, focalizzato su postura e ricomposizione corporea, e che i dettagli si definiscono insieme durante la valutazione."
+    - "Se il cliente racconta problemi fisici, dolori, infortuni, patologie o esigenze particolari, non dare consigli e non indirizzarlo dal medico: ascolta con attenzione, rassicuralo che il coach ne terrà conto e li approfondirà con lui durante la valutazione, e riporta tutto nelle note della prenotazione."
   timezone: "Europe/Rome"
 
 # Fascia oraria in cui l'agente può chiamare i lead
