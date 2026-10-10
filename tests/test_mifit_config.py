@@ -31,8 +31,13 @@ def test_casoria_slots(mifit):
 def test_prompt_rules(mifit):
     lead = {"id": 1, "nome": "Maria Esposito", "source": "meta", "centro_id": None}
     first = prompt.first_message(lead)
-    assert "Vittoria" in first and "MIFIT" in first and "La chiamo" in first and "Maria," in first
+    assert first.endswith("Maria, sono Vittoria, la consulente virtuale di MIFIT. La chiamo perché ha richiesto "
+                          "informazioni per iniziare un percorso nel nostro centro. Ha due minuti da dedicarmi "
+                          "per prenotare una valutazione gratuita?")
+    assert first.startswith(("Buongiorno Maria", "Buonasera Maria"))
+    assert prompt.first_message({**lead, "nome": None}).startswith(("Buongiorno, sono", "Buonasera, sono"))
     sp = prompt.system_prompt(lead)
     assert "Non dire MAI prezzi" in sp
     assert "Dai del Lei" in sp
+    assert sp.startswith("Sei Vittoria, consulente virtuale di MIFIT.")
     assert "MIFIT Casoria (id `casoria`)" in sp  # unico centro: già selezionato

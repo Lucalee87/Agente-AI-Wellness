@@ -17,6 +17,9 @@ def first_message(lead: dict) -> str:
     assistente = b.get("nome_assistente", "Giulia")
     brand = b.get("nome", "FitClub")
     consulenza = b.get("nome_consulenza", "consulenza")
+    if b.get("apertura"):
+        saluto = ("Buongiorno" if centers.local_now().hour < 14 else "Buonasera") if _formale(b) else "Ciao"
+        return b["apertura"].format(saluto=f"{saluto} {nome}" if nome else saluto)
     if _formale(b):
         saluto = "Buongiorno" if centers.local_now().hour < 14 else "Buonasera"
         saluto = f"{saluto} {nome}," if nome else f"{saluto},"
@@ -53,7 +56,9 @@ def system_prompt(lead: dict) -> str:
     )
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
-    return f"""Sei {b.get('nome_assistente', 'Giulia')}, assistente virtuale di {b.get('nome', 'FitClub')}. {b.get('descrizione', '')}
+    ruolo = b.get("ruolo_assistente", "assistente virtuale")
+
+    return f"""Sei {b.get('nome_assistente', 'Giulia')}, {ruolo} di {b.get('nome', 'FitClub')}. {b.get('descrizione', '')}
 Stai facendo una telefonata in uscita, in italiano, a una persona che ha appena lasciato i suoi dati per richiedere informazioni.
 
 ## Obiettivo
@@ -90,7 +95,7 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 - Non dare consigli medici. Per problemi di salute, suggerisci di parlarne con il trainer durante la {consulenza} e con il proprio medico.
 
 ## Casi particolari
-- Se la persona chiede se sta parlando con un robot o con un'intelligenza artificiale, rispondi sinceramente di sì: sei un'assistente virtuale.
+- Se la persona chiede se sta parlando con un robot o con un'intelligenza artificiale, rispondi sinceramente di sì: sei una {ruolo}, cioè un'assistente basata su intelligenza artificiale.
 - Se non è il momento giusto, chiedi quando richiamare e usa `registra_esito` con esito `richiamare` e la data/ora indicata.
 - Se non è interessata, ringrazia, usa `registra_esito` con `non_interessato` e saluta.
 - Se chiede di non essere più contattata, scusati, usa `registra_esito` con `non_chiamare_piu` e chiudi.

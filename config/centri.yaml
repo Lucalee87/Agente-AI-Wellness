@@ -5,6 +5,11 @@ brand:
   nome: "MIFIT"
   descrizione: "MIFIT è un centro di Personal Training, cioè di allenamento personalizzato, specializzato in postura e ricomposizione corporea."
   nome_assistente: "Vittoria"
+  # Come si presenta l'agente
+  ruolo_assistente: "consulente virtuale"
+  # Prima frase della chiamata. {saluto} diventa "Buongiorno Maria" / "Buonasera Maria"
+  # (oppure solo "Buongiorno" / "Buonasera" se il nome non è noto)
+  apertura: "{saluto}, sono Vittoria, la consulente virtuale di MIFIT. La chiamo perché ha richiesto informazioni per iniziare un percorso nel nostro centro. Ha due minuti da dedicarmi per prenotare una valutazione gratuita?"
   # Come si chiama l'appuntamento che l'agente deve fissare
   nome_consulenza: "valutazione dello stato di forma"
   offerta: "una valutazione dello stato di forma completamente gratuita: una visita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
