@@ -23,6 +23,7 @@ brand:
     - "Sottolinea che la valutazione è completamente gratuita e senza impegno: solo dopo aver visto il preventivo personalizzato il cliente deciderà liberamente se iniziare un percorso con noi."
     - "Se il cliente chiede come funziona il percorso, spiega che è un allenamento personalizzato con un coach, focalizzato su postura e ricomposizione corporea, e che i dettagli si definiscono insieme durante la valutazione."
     - "Se il cliente racconta problemi fisici, dolori, infortuni, patologie o esigenze particolari, non dare consigli e non indirizzarlo dal medico: ascolta con attenzione, rassicuralo che il coach ne terrà conto e li approfondirà con lui durante la valutazione, e riporta tutto nelle note della prenotazione."
+    - "Se il cliente chiede un giorno o un orario non disponibile, non dire mai 'non è possibile': rispondi 'Nel giorno da Lei indicato le valutazioni sono al completo, abbiamo disponibilità…' e proponi subito due o tre alternative."
   timezone: "Europe/Rome"
 
 # Fascia oraria in cui l'agente può chiamare i lead
