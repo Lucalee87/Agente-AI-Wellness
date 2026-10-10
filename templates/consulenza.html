@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prenota la tua consulenza gratuita · {{ brand.nome }}</title>
+  <title>Prenota la tua {{ brand.nome_consulenza or 'consulenza' }} gratuita · {{ brand.nome }}</title>
   <style>
     :root { --bg:#f6f5f2; --card:#fff; --text:#1d1d1f; --muted:#6b6b70; --accent:#e4572e; --border:#e2e0db; }
     @media (prefers-color-scheme: dark) { :root { --bg:#141414; --card:#1f1f1f; --text:#f2f2f2; --muted:#a0a0a5; --border:#333; } }
@@ -26,9 +26,9 @@
   <div class="card">
   {% if done %}
     <h1>Grazie{% if nome %} {{ nome }}{% endif %}! 💪</h1>
-    <p class="lead">Abbiamo ricevuto la tua richiesta. {{ brand.nome_assistente }}, la nostra assistente, ti chiamerà a breve per fissare la consulenza{% if not calling_now %} (le chiamate partono negli orari di apertura){% endif %}.</p>
+    <p class="lead">Abbiamo ricevuto la tua richiesta. {{ brand.nome_assistente }}, la nostra assistente, ti chiamerà a breve per fissare la {{ brand.nome_consulenza or 'consulenza' }}{% if not calling_now %} (le chiamate partono negli orari di apertura){% endif %}.</p>
   {% else %}
-    <h1>Prenota la tua consulenza gratuita</h1>
+    <h1>Prenota la tua {{ brand.nome_consulenza or 'consulenza' }} gratuita</h1>
     <p class="lead">Lascia i tuoi dati: ti richiamiamo noi in pochi minuti per trovare l'orario giusto per te.</p>
     {% if error %}<div class="error">{{ error }}</div>{% endif %}
     <form method="post">
@@ -46,7 +46,7 @@
       <label for="obiettivo">Il tuo obiettivo (facoltativo)</label>
       <input id="obiettivo" name="obiettivo" placeholder="Es. perdere 5 kg, tonificare..." value="{{ form.obiettivo or '' }}">
       <label class="check"><input type="checkbox" name="consenso" value="1" required>
-        Acconsento a essere ricontattato telefonicamente, anche tramite un'assistente virtuale, per fissare la consulenza, e al trattamento dei miei dati per questa finalità.</label>
+        Acconsento a essere ricontattato telefonicamente, anche tramite un'assistente virtuale, per fissare l'appuntamento, e al trattamento dei miei dati per questa finalità.</label>
       <button type="submit">Richiamami</button>
     </form>
   {% endif %}

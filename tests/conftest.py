@@ -4,6 +4,7 @@ import tempfile
 _tmp = tempfile.mkdtemp()
 os.environ.update({
     "DATABASE_PATH": os.path.join(_tmp, "test.db"),
+    "CENTRI_PATH": os.path.join(os.path.dirname(__file__), "fixtures", "centri.yaml"),
     "DISABLE_DIALER": "1",
     "VOICE_PROVIDER": "dry_run",
     "VAPI_SERVER_SECRET": "vapi-secret",

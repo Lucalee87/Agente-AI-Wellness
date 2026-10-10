@@ -77,7 +77,7 @@ def test_meta_webhook_fetches_and_saves_lead(client, monkeypatch):
 
 
 def test_landing_page(client):
-    assert "Prenota la tua consulenza" in client.get("/consulenza?centro=salerno&src=ig_dm").text
+    assert "Prenota la tua" in client.get("/consulenza?centro=salerno&src=ig_dm").text
     no_consent = client.post("/consulenza", data={"nome": "Sara", "telefono": "3331112222", "centro": "salerno"})
     assert no_consent.status_code == 400
     r = client.post("/consulenza", data={"nome": "Sara", "telefono": "3331112222", "centro": "salerno",

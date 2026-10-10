@@ -1,52 +1,44 @@
-# Configurazione del brand e dei centri fitness.
-# Modifica questi valori con i dati reali: l'agente li usa durante le chiamate.
+# Configurazione del brand e dei centri MIFIT.
+# L'agente usa questi dati durante le chiamate: se cambia qualcosa, chiedi a Claude di aggiornarli.
 
 brand:
-  nome: "FitClub"
-  nome_assistente: "Giulia"
-  # Cosa proponiamo al lead durante la chiamata
-  offerta: "una consulenza gratuita di circa 45 minuti con un nostro trainer, con analisi della composizione corporea e un allenamento di prova"
+  nome: "MIFIT"
+  descrizione: "MIFIT è un centro di Personal Training, cioè di allenamento personalizzato, specializzato in postura e ricomposizione corporea."
+  nome_assistente: "Vittoria"
+  # Come si chiama l'appuntamento che l'agente deve fissare
+  nome_consulenza: "valutazione dello stato di forma"
+  offerta: "una valutazione dello stato di forma completamente gratuita: una visita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
+  # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
+  registro: "lei"
+  # Regole che l'agente deve sempre rispettare
+  regole:
+    - "Non dire MAI prezzi, costi, abbonamenti o cifre, nemmeno indicative o 'a partire da'. Se il cliente insiste, spiega che ogni percorso è personalizzato: solo dopo la valutazione gratuita possiamo capire qual è il percorso giusto e presentare un preventivo su misura."
+    - "Sottolinea che la valutazione è completamente gratuita e senza impegno: solo dopo aver visto il preventivo personalizzato il cliente deciderà liberamente se iniziare un percorso con noi."
+    - "Se il cliente chiede come funziona il percorso, spiega che è un allenamento personalizzato con un trainer, focalizzato su postura e ricomposizione corporea, e che i dettagli si definiscono insieme durante la valutazione."
   timezone: "Europe/Rome"
 
 # Fascia oraria in cui l'agente può chiamare i lead
 orari_chiamate:
   giorni: [lun, mar, mer, gio, ven, sab]
   dalle: "09:00"
-  alle: "20:30"
+  alle: "20:00"
 
-# Tentativi di chiamata se il lead non risponde (minuti di attesa prima di ogni tentativo)
+# Tentativi di chiamata se il lead non risponde (minuti di attesa prima di ogni tentativo):
+# subito, dopo 2 ore, dopo 1 giorno, dopo 2 giorni
 tentativi_minuti: [0, 120, 1440, 2880]
 
 centri:
-  - id: napoli-centro
-    nome: "FitClub Napoli Centro"
-    indirizzo: "Via Toledo 100, Napoli"
-    durata_consulenza_min: 45
+  - id: casoria
+    nome: "MIFIT Casoria"
+    indirizzo: "Via Eleonora Pimentel Fonseca 25, Casoria (NA)"
+    durata_consulenza_min: 40
     posti_per_slot: 1
     orari_consulenze:
-      lun: ["09:00-13:00", "15:00-20:00"]
-      mar: ["09:00-13:00", "15:00-20:00"]
-      mer: ["09:00-13:00", "15:00-20:00"]
-      gio: ["09:00-13:00", "15:00-20:00"]
-      ven: ["09:00-13:00", "15:00-19:00"]
-      sab: ["09:30-13:00"]
-    # ID dei moduli lead per associare automaticamente il lead al centro
+      lun: ["15:00-19:00"]
+      mer: ["09:00-11:00", "17:30-20:30"]
+      ven: ["16:00-20:00"]
+    # ID dei moduli lead (Meta / Google) che portano a questo centro
     meta_form_ids: []
     google_form_ids: []
-    # ID del Google Calendar del centro (vuoto = calendario solo interno)
-    google_calendar_id: ""
-
-  - id: salerno
-    nome: "FitClub Salerno"
-    indirizzo: "Corso Vittorio Emanuele 50, Salerno"
-    durata_consulenza_min: 45
-    posti_per_slot: 1
-    orari_consulenze:
-      lun: ["10:00-13:00", "16:00-20:00"]
-      mer: ["10:00-13:00", "16:00-20:00"]
-      ven: ["10:00-13:00", "16:00-20:00"]
-      sab: ["10:00-13:00"]
-    meta_form_ids: []
-    google_form_ids: []
-    # ID del Google Calendar del centro (vuoto = calendario solo interno)
+    # ID del Google Calendar del centro (lo aggiungiamo al passo 6)
     google_calendar_id: ""
