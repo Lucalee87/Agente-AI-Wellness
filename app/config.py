@@ -37,7 +37,7 @@ class Settings:
     vapi_api_key: str = field(default_factory=lambda: _env("VAPI_API_KEY"))
     vapi_phone_number_id: str = field(default_factory=lambda: _env("VAPI_PHONE_NUMBER_ID"))
     vapi_server_secret: str = field(default_factory=lambda: _env("VAPI_SERVER_SECRET"))
-    llm_model: str = field(default_factory=lambda: _env("LLM_MODEL", "claude-opus-5-5"))
+    llm_model: str = field(default_factory=lambda: _env("LLM_MODEL", "claude-haiku-5-5"))
     voice_provider_name: str = field(default_factory=lambda: _env("VOICE_PROVIDER_NAME", "11labs"))
     voice_id: str = field(default_factory=lambda: _env("VOICE_ID"))
     transcriber_language: str = field(default_factory=lambda: _env("TRANSCRIBER_LANGUAGE", "it"))
