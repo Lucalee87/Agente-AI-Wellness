@@ -1,0 +1,48 @@
+# Configurazione del brand e dei centri fitness.
+# Modifica questi valori con i dati reali: l'agente li usa durante le chiamate.
+
+brand:
+  nome: "FitClub"
+  nome_assistente: "Giulia"
+  # Cosa proponiamo al lead durante la chiamata
+  offerta: "una consulenza gratuita di circa 45 minuti con un nostro trainer, con analisi della composizione corporea e un allenamento di prova"
+  timezone: "Europe/Rome"
+
+# Fascia oraria in cui l'agente può chiamare i lead
+orari_chiamate:
+  giorni: [lun, mar, mer, gio, ven, sab]
+  dalle: "09:00"
+  alle: "20:30"
+
+# Tentativi di chiamata se il lead non risponde (minuti di attesa prima di ogni tentativo)
+tentativi_minuti: [0, 120, 1440, 2880]
+
+centri:
+  - id: napoli-centro
+    nome: "FitClub Napoli Centro"
+    indirizzo: "Via Toledo 100, Napoli"
+    durata_consulenza_min: 45
+    posti_per_slot: 1
+    orari_consulenze:
+      lun: ["09:00-13:00", "15:00-20:00"]
+      mar: ["09:00-13:00", "15:00-20:00"]
+      mer: ["09:00-13:00", "15:00-20:00"]
+      gio: ["09:00-13:00", "15:00-20:00"]
+      ven: ["09:00-13:00", "15:00-19:00"]
+      sab: ["09:30-13:00"]
+    # ID dei moduli lead per associare automaticamente il lead al centro
+    meta_form_ids: []
+    google_form_ids: []
+
+  - id: salerno
+    nome: "FitClub Salerno"
+    indirizzo: "Corso Vittorio Emanuele 50, Salerno"
+    durata_consulenza_min: 45
+    posti_per_slot: 1
+    orari_consulenze:
+      lun: ["10:00-13:00", "16:00-20:00"]
+      mer: ["10:00-13:00", "16:00-20:00"]
+      ven: ["10:00-13:00", "16:00-20:00"]
+      sab: ["10:00-13:00"]
+    meta_form_ids: []
+    google_form_ids: []

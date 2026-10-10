@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prenota la tua consulenza gratuita · {{ brand.nome }}</title>
+  <style>
+    :root { --bg:#f6f5f2; --card:#fff; --text:#1d1d1f; --muted:#6b6b70; --accent:#e4572e; --border:#e2e0db; }
+    @media (prefers-color-scheme: dark) { :root { --bg:#141414; --card:#1f1f1f; --text:#f2f2f2; --muted:#a0a0a5; --border:#333; } }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+    main { max-width: 440px; margin: 0 auto; padding: 32px 16px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; }
+    p.lead { color: var(--muted); margin: 0 0 20px; line-height: 1.45; }
+    label { display:block; font-weight:600; font-size:.9rem; margin: 14px 0 6px; }
+    input, select, textarea { width:100%; padding:12px; font-size:1rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--text); }
+    .check { display:flex; gap:10px; align-items:flex-start; font-weight:400; font-size:.85rem; color:var(--muted); }
+    .check input { width:auto; margin-top:3px; }
+    button { margin-top: 20px; width:100%; padding:14px; border:0; border-radius:10px; background:var(--accent); color:#fff; font-size:1.05rem; font-weight:700; cursor:pointer; }
+    .error { background:#fde8e4; color:#a02a10; padding:10px 12px; border-radius:10px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="card">
+  {% if done %}
+    <h1>Grazie{% if nome %} {{ nome }}{% endif %}! 💪</h1>
+    <p class="lead">Abbiamo ricevuto la tua richiesta. {{ brand.nome_assistente }}, la nostra assistente, ti chiamerà a breve per fissare la consulenza{% if not calling_now %} (le chiamate partono negli orari di apertura){% endif %}.</p>
+  {% else %}
+    <h1>Prenota la tua consulenza gratuita</h1>
+    <p class="lead">Lascia i tuoi dati: ti richiamiamo noi in pochi minuti per trovare l'orario giusto per te.</p>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post">
+      <input type="hidden" name="src" value="{{ src }}">
+      <label for="nome">Nome</label>
+      <input id="nome" name="nome" required autocomplete="given-name" value="{{ form.nome or '' }}">
+      <label for="telefono">Telefono</label>
+      <input id="telefono" name="telefono" type="tel" required autocomplete="tel" placeholder="333 123 4567" value="{{ form.telefono or '' }}">
+      <label for="centro">Centro</label>
+      <select id="centro" name="centro" required>
+        {% for c in centri %}
+        <option value="{{ c.id }}" {% if c.id == centro %}selected{% endif %}>{{ c.nome }}</option>
+        {% endfor %}
+      </select>
+      <label for="obiettivo">Il tuo obiettivo (facoltativo)</label>
+      <input id="obiettivo" name="obiettivo" placeholder="Es. perdere 5 kg, tonificare..." value="{{ form.obiettivo or '' }}">
+      <label class="check"><input type="checkbox" name="consenso" value="1" required>
+        Acconsento a essere ricontattato telefonicamente, anche tramite un'assistente virtuale, per fissare la consulenza, e al trattamento dei miei dati per questa finalità.</label>
+      <button type="submit">Richiamami</button>
+    </form>
+  {% endif %}
+  </div>
+</main>
+</body>
+</html>
