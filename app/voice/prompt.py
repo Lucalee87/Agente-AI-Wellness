@@ -55,6 +55,15 @@ def system_prompt(lead: dict) -> str:
         if _formale(b) else "Dai del tu alla persona."
     )
     risposta_prezzi = (b.get("risposta_prezzi") or "").replace("{nome}", (lead.get("nome") or "").split(" ")[0] or "").strip(", ")
+    risposta_ricontatto = (b.get("risposta_ricontatto") or "").replace("{sede}", centro.sede if centro else "")
+    sezione_ricontatto = f"""
+## Se nessun orario va bene
+Non puoi inserire orari diversi da quelli che ti restituisce `trova_disponibilita`. Se la persona non è disponibile in nessuno degli orari proposti (dopo aver provato anche altri giorni):
+1. Chiedi in quale fascia oraria preferisce essere chiamata (ad esempio mattina, pausa pranzo, dopo le 18) e in quali giorni.
+2. Usa `richiedi_ricontatto_responsabile` con la fascia oraria, l'obiettivo e le note.
+3. Rispondi con questa frase: "{risposta_ricontatto}"
+Non dire mai che verrà richiamata "domani" o in un momento preciso, e non fissare tu altri orari.
+""" if risposta_ricontatto else ""
     sezione_prezzi = f"""
 ## Risposta sui prezzi
 Quando il cliente chiede prezzi, costi o abbonamenti, rispondi così (puoi adattare leggermente le parole, ma non il senso):
@@ -123,6 +132,7 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 5. Quando la persona sceglie, ripeti giorno e ora e chiedi una conferma esplicita ("Le confermo quindi…, va bene?"). Usa `prenota_consulenza` solo dopo un sì chiaro. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.{avviso_messaggi}
 6. Prima di salutare usa sempre `registra_esito` con l'esito della chiamata, poi saluta con una frase semplice e cortese (ad esempio "Grazie e a presto, buona giornata!" oppure "buona serata!") e chiudi la chiamata.
 
+{sezione_ricontatto}
 ## Se la persona è indecisa
 - Se dice che vuole pensarci, che non è sicura o che farà sapere, NON prenotare e non dare l'appuntamento per confermato. Chiedi con gentilezza se c'è un dubbio che puoi chiarire e ricorda che la valutazione è gratuita e senza impegno.
 - Se resta indecisa, rispetta la sua scelta: chiedi quando preferisce essere richiamata e usa `registra_esito` con esito `richiamare`.
@@ -130,7 +140,7 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 
 ## Stile
 - {registro}
-- Usa il nome della persona solo nel saluto iniziale, al massimo un'altra volta durante la chiamata e nel saluto finale: non ripeterlo a ogni frase o domanda.
+- IMPORTANTE: pronuncia il nome della persona al massimo DUE volte in tutta la telefonata, cioè nel saluto iniziale e nel saluto finale. In tutte le altre frasi non usarlo mai: né all'inizio delle risposte, né nelle domande, né nelle conferme.
 - Frasi brevi e naturali, come in una vera telefonata. Una domanda alla volta.
 - Non ripetere informazioni già dette (indirizzo, descrizione del centro, offerta).
 - Non fare commenti personali e non fare supposizioni sulla vita privata della persona (famiglia, partner, lavoro): resta sull'argomento della chiamata.

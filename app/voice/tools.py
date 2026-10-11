@@ -56,6 +56,23 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "richiedi_ricontatto_responsabile",
+        "description": (
+            "Da usare quando nessuno degli orari disponibili va bene alla persona: il responsabile del centro "
+            "la richiamerà per trovare insieme un giorno e un orario. Prima chiedi in quale fascia oraria preferisce essere chiamata."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "fascia_oraria": {"type": "string", "description": "Quando la persona preferisce essere richiamata (es. 'mattina tra le 10 e le 12', 'dopo le 18')."},
+                "obiettivo": {"type": "string", "description": "Obiettivo della persona, in poche parole."},
+                "tipo_valutazione": {"type": "string", "description": "Codice tipo di valutazione, se già chiaro (es. dimagrimento_tono, posturale, combinata)."},
+                "note": {"type": "string", "description": "Disponibilità, esigenze, problemi fisici e tutto ciò che serve al responsabile."},
+            },
+            "required": ["fascia_oraria"],
+        },
+    },
+    {
         "name": "annulla_prenotazione",
         "description": "Annulla la prenotazione fatta in questa chiamata, se la persona ci ripensa e chiede di annullarla.",
         "parameters": {
@@ -148,7 +165,8 @@ def _prenota_consulenza(lead: dict, args: dict) -> str:
     calendars.sync_appointment(appointment_id)
     # Conferma subito + promemoria (inviati dalla coda)
     messaging.schedule_for_appointment(appointment_id)
-    leads.notify("consulenza_prenotata", lead["id"], centro=centro.nome, data_ora=key)
+    leads.notify("consulenza_prenotata", lead["id"], centro=centro.nome, data_ora=key, tipo=tipo,
+                 note=args.get("note"))
     return f"Prenotazione confermata: {centers.format_it(start)} presso {centro.nome}, {centro.indirizzo}."
 
 
@@ -158,6 +176,8 @@ def _registra_esito(lead: dict, args: dict) -> str:
     if note:
         db.update_lead(lead["id"], summary=note)
     current = db.get_lead(lead["id"]) or lead
+    if current["status"] == db.STAFF_CALLBACK:
+        return "Esito registrato: la persona verrà richiamata dal responsabile. Saluta e chiudi la chiamata."
     if esito == "prenotato" or current["status"] == db.BOOKED:
         return "Esito registrato. Saluta cordialmente e chiudi la chiamata."
     if esito == "richiamare":
@@ -201,7 +221,21 @@ def _annulla_prenotazione(lead: dict, args: dict) -> str:
     return "Prenotazione annullata. Chiedi quando preferisce essere ricontattata e usa registra_esito."
 
 
+def _richiedi_ricontatto_responsabile(lead: dict, args: dict) -> str:
+    fields = {"status": db.STAFF_CALLBACK, "next_attempt_at": None}
+    if args.get("obiettivo"):
+        fields["obiettivo"] = args["obiettivo"]
+    nota = "; ".join(x for x in (f"Richiamare: {args.get('fascia_oraria')}", args.get("note")) if x)
+    fields["note"] = nota
+    fields["summary"] = "Nessun orario adatto: da ricontattare dal responsabile"
+    db.update_lead(lead["id"], **fields)
+    leads.notify("ricontatto_responsabile", lead["id"], fascia_oraria=args.get("fascia_oraria"),
+                 note=args.get("note"), tipo=args.get("tipo_valutazione"))
+    return "Richiesta inoltrata al responsabile del centro. Rassicura la persona con la frase indicata e saluta."
+
+
 _HANDLERS = {
+    "richiedi_ricontatto_responsabile": _richiedi_ricontatto_responsabile,
     "annulla_prenotazione": _annulla_prenotazione,
     "trova_disponibilita": _trova_disponibilita,
     "prenota_consulenza": _prenota_consulenza,

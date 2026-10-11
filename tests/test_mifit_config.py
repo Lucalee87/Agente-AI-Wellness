@@ -41,10 +41,11 @@ def test_prompt_rules(mifit):
     assert "Dai del Lei" in sp
     assert "trainer" not in sp and "coach" in sp
     assert "parla SEMPRE del posturologo" in sp
-    assert '"Maria, essendo un percorso personalizzato, il nostro format prevede una valutazione gratuita' in sp
+    assert '"Essendo un percorso personalizzato, il nostro format prevede una valutazione gratuita' in sp
+    assert "dal nostro responsabile di Casoria, per trovare un giorno e un orario comodi" in sp
     assert "non dire mai frasi come 'mi dispiace, non posso dire i prezzi per telefono'" in sp.lower() or "mi dispiace, non posso dire i prezzi" in sp
     assert "NON prenotare" in sp and "annulla_prenotazione" in sp
-    assert "non ripeterlo a ogni frase" in sp
+    assert "al massimo DUE volte" in sp
     assert "Nel giorno da Lei indicato le valutazioni sono al completo" in sp
     assert "una sola volta" in sp
     assert "dimagrire, migliorare il tono muscolare o risolvere problemi posturali?" in sp

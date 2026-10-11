@@ -36,9 +36,10 @@ brand:
   professionista: "coach"
   # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
   registro: "lei"
-  # Regole che l'agente deve sempre rispettare
   # Risposta da dare quando il cliente chiede prezzi o costi ({nome} = nome del cliente)
-  risposta_prezzi: "{nome}, essendo un percorso personalizzato, il nostro format prevede una valutazione gratuita, nella quale condivideremo insieme il percorso adeguato a lei. Non abbiamo un listino fisso come le palestre low cost: qui analizziamo nel dettaglio ogni passo."
+  risposta_prezzi: "Essendo un percorso personalizzato, il nostro format prevede una valutazione gratuita, nella quale condivideremo insieme il percorso adeguato a lei. Non abbiamo un listino fisso come le palestre low cost: qui analizziamo nel dettaglio ogni passo."
+  # Quando nessun orario disponibile va bene: il responsabile del centro richiamerà ({sede} = es. Casoria)
+  risposta_ricontatto: "La farò contattare nella fascia oraria da Lei indicata dal nostro responsabile di {sede}, per trovare un giorno e un orario comodi per Lei per effettuare la valutazione."
   # Regole che l'agente deve sempre rispettare
   regole:
     - "Non dire MAI prezzi, costi, abbonamenti o cifre, nemmeno indicative o 'a partire da'. Quando il cliente chiede prezzi o costi, rispondi con la frase indicata nella sezione 'Risposta sui prezzi'. Non dire mai frasi come 'mi dispiace, non posso dire i prezzi per telefono'. Se il cliente insiste, non ripetere la stessa frase: con parole diverse e in breve ricorda che il preventivo personalizzato viene presentato dopo la valutazione gratuita, senza alcun impegno, e torna alla prenotazione."
@@ -76,6 +77,13 @@ messaggi:
     giorno_prima: "Promemoria: domani la sua valutazione gratuita - MIFIT"
     ore_prima: "Promemoria: oggi la sua valutazione gratuita - MIFIT"
 
+# Avvisi al responsabile del centro (SMS ed email) per gli eventi importanti
+notifiche_staff:
+  canali: [sms, email]
+  # ricontatto_responsabile = il cliente non ha trovato un orario e va richiamato a mano
+  # esito_chiamata = non interessato, numero errato, non chiamare più
+  eventi: [ricontatto_responsabile, consulenza_prenotata, prenotazione_annullata, lead_irraggiungibile]
+
 # Fascia oraria in cui l'agente può chiamare i lead
 orari_chiamate:
   giorni: [lun, mar, mer, gio, ven, sab]
@@ -92,6 +100,13 @@ centri:
     indirizzo: "Via Eleonora Pimentel Fonseca 25, Casoria (NA)"
     # Versione corta dell'indirizzo, usata negli SMS
     indirizzo_breve: "Via E. Pimentel Fonseca 25, Casoria"
+    # Nome della sede usato a voce ("il nostro responsabile di Casoria")
+    sede: "Casoria"
+    # Chi riceve gli avvisi (SMS/email) per questo centro
+    responsabile:
+      nome: "Luca"
+      telefono: "+393201720477"
+      email: ""
     durata_consulenza_min: 40
     posti_per_slot: 1
     orari_consulenze:

@@ -32,6 +32,9 @@ class Centro:
     google_form_ids: list[str]
     google_calendar_id: str = ""
     indirizzo_breve: str = ""
+    # Nome breve della sede usato a voce (es. "Casoria") e responsabile da avvisare
+    sede: str = ""
+    responsabile: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -41,6 +44,7 @@ class Config:
     tentativi_minuti: list[int]
     centri: dict[str, Centro]
     messaggi: dict = field(default_factory=dict)
+    notifiche_staff: dict = field(default_factory=dict)
 
     @property
     def tz(self) -> ZoneInfo:
@@ -64,6 +68,8 @@ def load_config(path: str | None = None) -> Config:
             google_form_ids=[str(x) for x in c.get("google_form_ids", [])],
             google_calendar_id=str(c.get("google_calendar_id") or ""),
             indirizzo_breve=c.get("indirizzo_breve", ""),
+            sede=c.get("sede", "") or c["nome"],
+            responsabile=c.get("responsabile") or {},
         )
     return Config(
         brand=raw.get("brand", {}),
@@ -71,6 +77,7 @@ def load_config(path: str | None = None) -> Config:
         tentativi_minuti=[int(x) for x in raw.get("tentativi_minuti", [0, 120, 1440])],
         centri=centri,
         messaggi=raw.get("messaggi") or {},
+        notifiche_staff=raw.get("notifiche_staff") or {},
     )
 
 

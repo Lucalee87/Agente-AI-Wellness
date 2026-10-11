@@ -107,7 +107,13 @@ def schedule_callback(lead_id: int, when_local: datetime) -> None:
 
 
 def notify(event: str, lead_id: int, **payload) -> None:
-    """Invia un evento a NOTIFY_WEBHOOK_URL (Slack, Zapier, Make...), se configurato."""
+    """Avvisa il responsabile del centro (SMS/email) e invia l'evento a NOTIFY_WEBHOOK_URL, se configurato."""
+    from .messaging.staff import notify_staff
+
+    try:
+        notify_staff(event, lead_id, **payload)
+    except Exception:
+        log.exception("Avviso al responsabile per %s non riuscito", event)
     if not settings.notify_webhook_url:
         return
     lead = db.get_lead(lead_id) or {}

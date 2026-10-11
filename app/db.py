@@ -82,6 +82,7 @@ NOT_INTERESTED = "not_interested"
 UNREACHABLE = "unreachable"    # tentativi esauriti
 INVALID = "invalid"            # numero errato
 DO_NOT_CALL = "do_not_call"    # ha chiesto di non essere più contattato
+STAFF_CALLBACK = "staff_callback"  # da richiamare a mano dal responsabile del centro
 
 _lock = threading.RLock()
 _conn: sqlite3.Connection | None = None
