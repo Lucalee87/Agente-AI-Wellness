@@ -52,6 +52,16 @@ class Settings:
     generic_webhook_token: str = field(default_factory=lambda: _env("GENERIC_WEBHOOK_TOKEN"))
     google_service_account_file: str = field(default_factory=lambda: _env("GOOGLE_SERVICE_ACCOUNT_FILE"))
     google_service_account_json: str = field(default_factory=lambda: _env("GOOGLE_SERVICE_ACCOUNT_JSON"))
+    # Messaggi al cliente (conferme e promemoria). Se MESSAGGI_ATTIVI non è "1" vengono solo simulati nei log.
+    messaggi_attivi: bool = field(default_factory=lambda: _env("MESSAGGI_ATTIVI") == "1")
+    twilio_account_sid: str = field(default_factory=lambda: _env("TWILIO_ACCOUNT_SID"))
+    twilio_auth_token: str = field(default_factory=lambda: _env("TWILIO_AUTH_TOKEN"))
+    twilio_sms_from: str = field(default_factory=lambda: _env("TWILIO_SMS_FROM"))
+    smtp_host: str = field(default_factory=lambda: _env("SMTP_HOST"))
+    smtp_port: int = field(default_factory=lambda: int(_env("SMTP_PORT", "587")))
+    smtp_user: str = field(default_factory=lambda: _env("SMTP_USER"))
+    smtp_password: str = field(default_factory=lambda: _env("SMTP_PASSWORD"))
+    email_from: str = field(default_factory=lambda: _env("EMAIL_FROM"))
     notify_webhook_url: str = field(default_factory=lambda: _env("NOTIFY_WEBHOOK_URL"))
 
 

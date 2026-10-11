@@ -4,7 +4,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import calendars, centers, db, leads
+from . import calendars, centers, db, leads, messaging
 from .config import settings
 from .voice import vapi
 
@@ -67,6 +67,10 @@ def tick() -> int:
     """Un giro della coda. Restituisce il numero di chiamate avviate."""
     release_stuck_calls()
     calendars.sync_pending()
+    try:
+        messaging.send_due()
+    except Exception:
+        log.exception("Errore nell'invio dei messaggi")
     if not centers.is_calling_time():
         return 0
     free = settings.max_concurrent_calls - active_calls()

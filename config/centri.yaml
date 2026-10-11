@@ -17,12 +17,18 @@ brand:
   domanda_obiettivo: "Qual è il suo obiettivo principale: dimagrire, migliorare il tono muscolare o risolvere problemi posturali?"
   # Cosa include la valutazione, a seconda dell'obiettivo del cliente
   valutazione_per_obiettivo:
-    - obiettivo: "Dimagrire oppure migliorare il tono muscolare"
+    - tipo: dimagrimento_tono
+      obiettivo: "Dimagrire oppure migliorare il tono muscolare"
       spiegazione: "La valutazione comprende una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri: così condividiamo insieme il suo punto di partenza. Poi c'è un'anamnesi con il nostro coach, in cui analizziamo passo dopo passo quali sono i suoi obiettivi da raggiungere e in che modo."
-    - obiettivo: "Risolvere problemi posturali (mal di schiena, dolori al collo, alle spalle, postura scorretta...)"
+      istruzioni_messaggio: "Le ricordiamo che per effettuare correttamente la bioimpedenza dovrà essere a digiuno da almeno 2 ore e bere un bicchiere d'acqua 1 ora prima dell'appuntamento."
+    - tipo: posturale
+      obiettivo: "Risolvere problemi posturali (mal di schiena, dolori al collo, alle spalle, postura scorretta...)"
       spiegazione: "La valutazione comprende dei test di valutazione posturale; guardiamo insieme gli eventuali referti che ha a disposizione e facciamo un'anamnesi con il nostro posturologo, in cui analizziamo passo dopo passo come risolvere i suoi problemi e ridurre i dolori che oggi la affliggono. Quando confermi l'appuntamento, invita la persona a portare eventuali referti (radiografie, risonanze, visite)."
-    - obiettivo: "Dimagrire o migliorare il tono muscolare E ANCHE la postura"
+      istruzioni_messaggio: "Se ha referti (radiografie, risonanze, visite), li porti con sé."
+    - tipo: combinata
+      obiettivo: "Dimagrire o migliorare il tono muscolare E ANCHE la postura"
       spiegazione: "La valutazione comprende sia una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri, sia dei test di valutazione posturale: ci permetteranno di condividere il suo punto di partenza e il percorso da fare insieme."
+      istruzioni_messaggio: "Le ricordiamo che per effettuare correttamente la bioimpedenza dovrà essere a digiuno da almeno 2 ore e bere un bicchiere d'acqua 1 ora prima dell'appuntamento. Se ha referti (radiografie, risonanze, visite), li porti con sé."
   # Come si chiama la figura che segue il cliente nel centro
   professionista: "coach"
   # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
@@ -35,6 +41,27 @@ brand:
     - "Se il cliente racconta problemi fisici, dolori, infortuni, patologie o esigenze particolari, non dare consigli e non indirizzarlo dal medico: ascolta con attenzione, rassicuralo che il coach (o il posturologo, per i problemi posturali) ne terrà conto e li approfondirà con lui durante la valutazione, e riporta tutto nelle note della prenotazione."
     - "Se il cliente chiede un giorno o un orario non disponibile, non dire mai 'non è possibile': rispondi 'Nel giorno da Lei indicato le valutazioni sono al completo, abbiamo disponibilità…' e proponi subito due o tre alternative."
   timezone: "Europe/Rome"
+
+# Messaggi di conferma e promemoria inviati al cliente dopo la prenotazione.
+# Segnaposto disponibili: {nome} {data} {ora} {centro} {indirizzo} {istruzioni} {chiusura}
+# Usa l'apostrofo dritto ' (non ’): così l'SMS costa meno.
+messaggi:
+  canali: [sms, email]
+  # Promemoria del giorno prima: solo se l'appuntamento è almeno 2 giorni dopo la prenotazione
+  giorno_prima_ora: "10:00"
+  giorno_prima_se_almeno_giorni: 2
+  # Promemoria poche ore prima (quante ore prima)
+  ore_prima_quante: 2
+  # Non inviare messaggi prima di quest'ora del mattino
+  non_prima_delle: "08:00"
+  chiusura: "Nel caso non riuscisse ad essere presente all'appuntamento, le chiediamo la gentilezza di comunicarcelo scrivendo al +39 320 172 0477. A presto"
+  testo_conferma: "Gentile {nome}, le confermiamo la valutazione gratuita dello stato di forma {data} alle {ora} presso {centro} in {indirizzo}.\n{istruzioni}\n{chiusura}"
+  testo_giorno_prima: "Gentile {nome}, domani, {data}, alle {ora} la aspettiamo presso {centro} in {indirizzo} per la sua valutazione gratuita dello stato di forma.\n{istruzioni}\n{chiusura}"
+  testo_ore_prima: "Gentile {nome}, la aspettiamo oggi alle {ora} presso {centro} in {indirizzo} per la sua valutazione gratuita dello stato di forma.\n{istruzioni}\n{chiusura}"
+  oggetto_email:
+    conferma: "Conferma della sua valutazione gratuita - MIFIT"
+    giorno_prima: "Promemoria: domani la sua valutazione gratuita - MIFIT"
+    ore_prima: "Promemoria: oggi la sua valutazione gratuita - MIFIT"
 
 # Fascia oraria in cui l'agente può chiamare i lead
 orari_chiamate:

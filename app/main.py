@@ -77,6 +77,7 @@ async def consulenza_submit(request: Request):
         source="dm" if src.startswith(("dm", "ig", "fb", "wa", "tiktok")) else "web",
         telefono=form.get("telefono"),
         nome=form.get("nome"),
+        email=(form.get("email") or "").strip() or None,
         centro_id=form.get("centro"),
         obiettivo=form.get("obiettivo") or None,
         extra={"src": src, "consenso": True},

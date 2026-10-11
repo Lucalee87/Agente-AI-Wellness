@@ -7,7 +7,7 @@ Le definizioni (JSON Schema) sono condivise tra Vapi e il simulatore testuale;
 import logging
 from datetime import date
 
-from .. import calendars, centers, db, leads
+from .. import calendars, centers, db, leads, messaging
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +47,10 @@ TOOL_DEFINITIONS = [
                 "data_ora": {"type": "string", "description": "Inizio dello slot, formato YYYY-MM-DDTHH:MM (ora italiana)."},
                 "obiettivo": {"type": "string", "description": "Obiettivo del cliente, in poche parole."},
                 "note": {"type": "string", "description": "Tutto ciò che il coach deve sapere: problemi fisici, dolori, infortuni, esigenze, esperienza, preferenze."},
+                "tipo_valutazione": {
+                    "type": "string",
+                    "description": "Tipo di valutazione in base all'obiettivo del cliente: uno dei codici `tipo` indicati nelle istruzioni (es. dimagrimento_tono, posturale, combinata). Serve per i messaggi di conferma.",
+                },
             },
             "required": ["centro_id", "data_ora"],
         },
@@ -114,9 +118,11 @@ def _prenota_consulenza(lead: dict, args: dict) -> str:
             "UPDATE appointments SET status = 'sostituito' WHERE lead_id = ? AND status = 'confermato'",
             (lead["id"],),
         )
+        tipi = {p.get("tipo") for p in cfg.brand.get("valutazione_per_obiettivo") or []}
+        tipo = args.get("tipo_valutazione") if args.get("tipo_valutazione") in tipi else None
         appointment_id = c.execute(
-            "INSERT INTO appointments (lead_id, centro_id, start_at, created_at, calendar_sync) VALUES (?, ?, ?, ?, ?)",
-            (lead["id"], centro_id, key, db.now_utc(), sync),
+            "INSERT INTO appointments (lead_id, centro_id, start_at, created_at, calendar_sync, tipo) VALUES (?, ?, ?, ?, ?, ?)",
+            (lead["id"], centro_id, key, db.now_utc(), sync, tipo),
         ).lastrowid
         fields = {"status": db.BOOKED, "centro_id": centro_id, "next_attempt_at": None}
         if args.get("obiettivo"):
@@ -127,7 +133,10 @@ def _prenota_consulenza(lead: dict, args: dict) -> str:
     # Scrittura nel calendario: se fallisce, la coda riprova in automatico (lo slot resta comunque bloccato)
     for old_id in replaced:
         calendars.sync_appointment(old_id)
+        messaging.cancel_for_appointment(old_id)
     calendars.sync_appointment(appointment_id)
+    # Conferma subito + promemoria (inviati dalla coda)
+    messaging.schedule_for_appointment(appointment_id)
     leads.notify("consulenza_prenotata", lead["id"], centro=centro.nome, data_ora=key)
     return f"Prenotazione confermata: {centers.format_it(start)} presso {centro.nome}, {centro.indirizzo}."
 

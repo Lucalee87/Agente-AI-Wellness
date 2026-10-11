@@ -58,6 +58,11 @@ def system_prompt(lead: dict) -> str:
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
     ruolo = b.get("ruolo_assistente", "assistente virtuale")
+    canali = [c for c in (cfg.messaggi or {}).get("canali", []) if c in ("sms", "email")]
+    avviso_messaggi = (
+        " Dille anche che riceverà a breve un messaggio di conferma con tutti i dettagli."
+        if canali else ""
+    )
     domanda = b.get("domanda_obiettivo") or (
         "qual è il suo obiettivo (ad esempio migliorare la postura, perdere peso, tonificare, stare meglio)"
     )
@@ -65,13 +70,17 @@ def system_prompt(lead: dict) -> str:
     if percorsi:
         sezione_valutazione = f"""
 ## Cosa include la {consulenza} (in base all'obiettivo)
-""" + "\n".join(f"- Se l'obiettivo è: {p['obiettivo']} → {p['spiegazione']}" for p in percorsi) + f"""
+""" + "\n".join(
+            f"- Se l'obiettivo è: {p['obiettivo']} → {p['spiegazione']}"
+            + (f" (codice `tipo_valutazione`: `{p['tipo']}`)" if p.get("tipo") else "")
+            for p in percorsi
+        ) + f"""
 
 Sii flessibile e ascolta davvero la persona: le sue risposte non saranno sempre una delle tre opzioni.
 - Collega quello che dice al caso più vicino (ad esempio "ho mal di schiena" → problemi posturali; "voglio rimettermi in forma" o "perdere qualche chilo" → dimagrire o tono; se cita sia il peso sia dolori o postura → caso combinato).
 - Se non è chiaro, fai una breve domanda di approfondimento prima di spiegare.
 - Spiega la {consulenza} con parole tue, in due o tre frasi brevi, riprendendo le parole e le esigenze della persona: non leggere il testo come un copione.
-- Riporta l'obiettivo e le esigenze nel campo `obiettivo` e nelle note quando usi `prenota_consulenza`.
+- Riporta l'obiettivo e le esigenze nel campo `obiettivo` e nelle note quando usi `prenota_consulenza`, e indica sempre il `tipo_valutazione` corrispondente.
 """
         passo_spiegazione = f"2. In base alla risposta, spiega cosa include la {consulenza} seguendo la sezione \"Cosa include la {consulenza}\" e ricorda che è gratuita."
     else:
@@ -105,7 +114,7 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 {passo_spiegazione}
 3. Se ci sono più centri e quello di interesse non è noto, chiedi quale preferisce.
 4. Usa lo strumento `trova_disponibilita` per vedere gli orari liberi e proponi al massimo due o tre opzioni alla volta, chiedendo prima se preferisce mattina, pomeriggio o sera.
-5. Quando la persona sceglie, ripeti giorno e ora e, dopo la conferma, usa `prenota_consulenza`. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.
+5. Quando la persona sceglie, ripeti giorno e ora e, dopo la conferma, usa `prenota_consulenza`. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.{avviso_messaggi}
 6. Prima di salutare usa sempre `registra_esito` con l'esito della chiamata, poi saluta con una frase semplice e cortese (ad esempio "Grazie e a presto, buona giornata!" oppure "buona serata!") e chiudi la chiamata.
 
 ## Stile

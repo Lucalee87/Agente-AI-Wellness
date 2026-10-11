@@ -1,6 +1,6 @@
 """Centri fitness, orari delle consulenze e disponibilità degli slot."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from functools import lru_cache
 from zoneinfo import ZoneInfo
@@ -39,6 +39,7 @@ class Config:
     orari_chiamate: dict
     tentativi_minuti: list[int]
     centri: dict[str, Centro]
+    messaggi: dict = field(default_factory=dict)
 
     @property
     def tz(self) -> ZoneInfo:
@@ -67,6 +68,7 @@ def load_config(path: str | None = None) -> Config:
         orari_chiamate=raw.get("orari_chiamate", {}),
         tentativi_minuti=[int(x) for x in raw.get("tentativi_minuti", [0, 120, 1440])],
         centri=centri,
+        messaggi=raw.get("messaggi") or {},
     )
 
 

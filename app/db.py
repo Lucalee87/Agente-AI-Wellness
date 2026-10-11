@@ -52,9 +52,25 @@ CREATE TABLE IF NOT EXISTS appointments (
     status TEXT NOT NULL DEFAULT 'confermato',
     calendar_event_id TEXT,            -- id dell'evento nel calendario esterno (Google, gestionale)
     calendar_sync TEXT,                -- pending | ok | error | deleted (NULL = nessun calendario)
-    calendar_error TEXT
+    calendar_error TEXT,
+    tipo TEXT                          -- tipo di valutazione (es. dimagrimento_tono, posturale, combinata)
 );
 CREATE INDEX IF NOT EXISTS idx_appt_slot ON appointments (centro_id, start_at);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    appointment_id INTEGER NOT NULL REFERENCES appointments(id),
+    lead_id INTEGER NOT NULL REFERENCES leads(id),
+    kind TEXT NOT NULL,                -- conferma | giorno_prima | ore_prima
+    channel TEXT NOT NULL,             -- sms | email | whatsapp
+    send_at TEXT NOT NULL,             -- UTC
+    status TEXT NOT NULL DEFAULT 'pending',  -- pending | inviato | simulato | annullato | saltato | errore
+    attempts INTEGER NOT NULL DEFAULT 0,
+    sent_at TEXT,
+    provider_id TEXT,
+    error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_messages_due ON messages (status, send_at);
 """
 
 # Stati possibili di un lead
@@ -92,7 +108,7 @@ def connect(path: str | None = None) -> sqlite3.Connection:
 
 # Colonne aggiunte dopo la prima versione: le creiamo sui database già esistenti
 _ADDED_COLUMNS = {
-    "appointments": {"calendar_event_id": "TEXT", "calendar_sync": "TEXT", "calendar_error": "TEXT"},
+    "appointments": {"calendar_event_id": "TEXT", "calendar_sync": "TEXT", "calendar_error": "TEXT", "tipo": "TEXT"},
 }
 
 

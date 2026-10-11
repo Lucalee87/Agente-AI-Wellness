@@ -114,7 +114,17 @@ Regole utili:
 
 Il calendario è collegato tramite un'interfaccia (`app/calendars/`) pensata per aggiungere in seguito il **gestionale della palestra** con le stesse regole.
 
-### 7. Notifiche (facoltativo)
+### 7. Conferme e promemoria al cliente (SMS ed email)
+Quando Vittoria prenota, il cliente riceve:
+- una **conferma subito**;
+- un **promemoria il giorno prima alle 10:00**, solo se l'appuntamento è almeno 2 giorni dopo la prenotazione;
+- un **promemoria 2 ore prima** (mai prima delle 8:00).
+
+I testi cambiano in base al tipo di valutazione (bioimpedenza, posturale o entrambe) e si modificano in `config/centri.yaml`, sezione `messaggi`. Se l'appuntamento viene spostato, i promemoria vecchi vengono annullati.
+
+Configurazione: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM` per gli SMS; `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` per le email (es. Brevo); poi `MESSAGGI_ATTIVI=1`. Finché non è attivo, i messaggi vengono solo scritti nei log.
+
+### 8. Notifiche allo staff (facoltativo)
 Imposta `NOTIFY_WEBHOOK_URL` (es. un webhook Zapier/Make/Slack): riceverai un evento a ogni consulenza prenotata, rifiuto o lead irraggiungibile.
 
 ## Aspetti legali (Italia/UE) — da verificare con il tuo consulente
