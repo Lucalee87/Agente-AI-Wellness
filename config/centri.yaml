@@ -58,6 +58,11 @@ messaggi:
   testo_conferma: "Gentile {nome}, le confermiamo la valutazione gratuita dello stato di forma {data} alle {ora} presso {centro} in {indirizzo}.\n{istruzioni}\n{chiusura}"
   testo_giorno_prima: "Gentile {nome}, domani, {data}, alle {ora} la aspettiamo presso {centro} in {indirizzo} per la sua valutazione gratuita dello stato di forma.\n{istruzioni}\n{chiusura}"
   testo_ore_prima: "Gentile {nome}, la aspettiamo oggi alle {ora} presso {centro} in {indirizzo} per la sua valutazione gratuita dello stato di forma.\n{istruzioni}\n{chiusura}"
+  # Versioni brevi per gli SMS (un SMS contiene circa 160 caratteri).
+  # Segnaposto in più: {giorno_breve} (es. mer 14/10) {indirizzo_breve} {saluto_finale} (Buona Giornata / Buona Serata)
+  sms_testo_conferma: "MIFIT\n{nome}, le confermo la Valutazione Gratuita {giorno_breve} ore {ora}, presso MIFIT in {indirizzo_breve}. {saluto_finale}"
+  sms_testo_giorno_prima: "MIFIT\n{nome}, le ricordo la Valutazione Gratuita di domani {giorno_breve} ore {ora}, presso MIFIT in {indirizzo_breve}. A presto"
+  sms_testo_ore_prima: "MIFIT\n{nome}, la aspettiamo oggi alle {ora} per la Valutazione Gratuita, presso MIFIT in {indirizzo_breve}. A presto"
   oggetto_email:
     conferma: "Conferma della sua valutazione gratuita - MIFIT"
     giorno_prima: "Promemoria: domani la sua valutazione gratuita - MIFIT"
@@ -77,6 +82,8 @@ centri:
   - id: casoria
     nome: "MIFIT Casoria"
     indirizzo: "Via Eleonora Pimentel Fonseca 25, Casoria (NA)"
+    # Versione corta dell'indirizzo, usata negli SMS
+    indirizzo_breve: "Via E. Pimentel Fonseca 25, Casoria"
     durata_consulenza_min: 40
     posti_per_slot: 1
     orari_consulenze:

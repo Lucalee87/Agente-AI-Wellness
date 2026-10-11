@@ -118,7 +118,7 @@ def test_send_due_real_and_retry(mifit, monkeypatch):
     assert messaging.send_due(now=now + timedelta(minutes=6)) == 1
     conferma = [m for m in _messages(appt) if m["kind"] == "conferma"][0]
     assert conferma["status"] == "inviato" and conferma["provider_id"] == "SM123" and conferma["attempts"] == 2
-    assert sent[0][0] == "+393331234567" and "bioimpedenza" in sent[0][1]
+    assert sent[0][0] == "+393331234567" and sent[0][1].startswith("MIFIT\nLuca, le confermo")
 
 
 def test_cancel_and_reschedule_via_booking_tool(mifit, monkeypatch):
@@ -136,3 +136,20 @@ def test_cancel_and_reschedule_via_booking_tool(mifit, monkeypatch):
     assert new["tipo"] == "posturale"
     assert all(m["status"] == "annullato" for m in _messages(old["id"]) if m["kind"] != "conferma")
     assert any(m["status"] == "pending" for m in _messages(new["id"]))
+
+
+def test_short_sms_texts(mifit):
+    lead = {"nome": "luca rossi"}
+    appt = {"centro_id": "casoria", "start_at": "2026-10-14T18:10", "tipo": "dimagrimento_tono"}
+    morning = _utc("2026-10-12T11:00")
+    _, sms = messaging.render("conferma", appt, lead, channel="sms", now=morning)
+    assert sms == ("MIFIT\nLuca, le confermo la Valutazione Gratuita mer 14/10 ore 18:10, "
+                   "presso MIFIT in Via E. Pimentel Fonseca 25, Casoria. Buona Giornata")
+    _, evening = messaging.render("conferma", appt, lead, channel="sms", now=_utc("2026-10-12T19:00"))
+    assert evening.endswith("Buona Serata")
+    for kind in ("conferma", "giorno_prima", "ore_prima"):
+        _, text = messaging.render(kind, appt, lead, channel="sms", now=morning)
+        assert len(text) <= 160, (kind, len(text))
+    # L'email resta nella versione completa
+    _, mail = messaging.render("conferma", appt, lead, channel="email", now=morning)
+    assert mail.startswith("Gentile Luca") and "bioimpedenza" in mail

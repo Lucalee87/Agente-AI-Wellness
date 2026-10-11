@@ -89,8 +89,12 @@ def cancel_for_appointment(appointment_id: int) -> None:
         )
 
 
-def render(kind: str, appt: dict, lead: dict) -> tuple[str, str]:
-    """Restituisce (oggetto, testo) del messaggio."""
+GIORNI_BREVI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
+
+
+def render(kind: str, appt: dict, lead: dict, channel: str = "email",
+           now: datetime | None = None) -> tuple[str, str]:
+    """Restituisce (oggetto, testo) del messaggio. Per gli SMS usa i testi brevi `sms_testo_*`, se presenti."""
     cfg = _cfg()
     conf = centers.load_config()
     centro = conf.centri.get(appt["centro_id"])
@@ -100,8 +104,12 @@ def render(kind: str, appt: dict, lead: dict) -> tuple[str, str]:
         if p.get("tipo") and p.get("tipo") == appt.get("tipo"):
             istruzioni = p.get("istruzioni_messaggio", "")
     nome = ((lead.get("nome") or "").split(" ")[0] or "cliente").capitalize()
+    sent_local = (now or datetime.now(timezone.utc)).astimezone(conf.tz)
     values = {
         "nome": nome,
+        "giorno_breve": f"{GIORNI_BREVI[start.weekday()]} {start.strftime('%d/%m')}",
+        "indirizzo_breve": (centro.indirizzo_breve or centro.indirizzo) if centro else "",
+        "saluto_finale": "Buona Giornata" if sent_local.hour < 17 else "Buona Serata",
         "data": centers.format_it(start).rsplit(" alle ", 1)[0],
         "ora": start.strftime("%H:%M"),
         "centro": centro.nome if centro else "",
@@ -109,7 +117,8 @@ def render(kind: str, appt: dict, lead: dict) -> tuple[str, str]:
         "istruzioni": istruzioni,
         "chiusura": cfg.get("chiusura", ""),
     }
-    text = cfg.get(f"testo_{kind}", "").format(**values)
+    template = (channel == "sms" and cfg.get(f"sms_testo_{kind}")) or cfg.get(f"testo_{kind}", "")
+    text = template.format(**values)
     # Righe vuote (es. nessuna istruzione specifica) non servono
     text = "\n".join(line for line in text.splitlines() if line.strip())
     subject = (cfg.get("oggetto_email") or {}).get(kind, "Il suo appuntamento")
@@ -147,7 +156,7 @@ def send_due(now: datetime | None = None, limit: int = 20) -> int:
         if not to:
             _mark(m["id"], status="saltato", error="recapito mancante")
             continue
-        subject, text = render(m["kind"], appt, lead)
+        subject, text = render(m["kind"], appt, lead, channel=m["channel"], now=now)
         if not settings.messaggi_attivi:
             log.info("[messaggi simulati] %s a %s:\n%s", m["channel"], to, text)
             _mark(m["id"], status="simulato", sent_at=db.now_utc())

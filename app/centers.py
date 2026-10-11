@@ -31,6 +31,7 @@ class Centro:
     meta_form_ids: list[str]
     google_form_ids: list[str]
     google_calendar_id: str = ""
+    indirizzo_breve: str = ""
 
 
 @dataclass
@@ -62,6 +63,7 @@ def load_config(path: str | None = None) -> Config:
             meta_form_ids=[str(x) for x in c.get("meta_form_ids", [])],
             google_form_ids=[str(x) for x in c.get("google_form_ids", [])],
             google_calendar_id=str(c.get("google_calendar_id") or ""),
+            indirizzo_breve=c.get("indirizzo_breve", ""),
         )
     return Config(
         brand=raw.get("brand", {}),
