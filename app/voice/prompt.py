@@ -54,7 +54,12 @@ def system_prompt(lead: dict) -> str:
         "Dai del Lei alla persona (registro formale e cortese), senza risultare rigida."
         if _formale(b) else "Dai del tu alla persona."
     )
-    coach = b.get("professionista", "trainer")
+    risposta_prezzi = (b.get("risposta_prezzi") or "").replace("{nome}", (lead.get("nome") or "").split(" ")[0] or "").strip(", ")
+    sezione_prezzi = f"""
+## Risposta sui prezzi
+Quando il cliente chiede prezzi, costi o abbonamenti, rispondi così (puoi adattare leggermente le parole, ma non il senso):
+"{risposta_prezzi}"
+""" if risposta_prezzi else ""
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
     ruolo = b.get("ruolo_assistente", "assistente virtuale")
@@ -96,6 +101,7 @@ Fissare un appuntamento per la {consulenza}: {offerta}. Fallo nel modo più natu
 ## Regole del centro (da rispettare sempre)
 {regole}
 
+{sezione_prezzi}
 ## Dati della persona
 - Nome: {lead.get('nome') or 'non indicato'}
 - Provenienza: {lead.get('source')}
@@ -114,18 +120,24 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 {passo_spiegazione}
 3. Se ci sono più centri e quello di interesse non è noto, chiedi quale preferisce.
 4. Usa lo strumento `trova_disponibilita` per vedere gli orari liberi e proponi al massimo due o tre opzioni alla volta, chiedendo prima se preferisce mattina, pomeriggio o sera.
-5. Quando la persona sceglie, ripeti giorno e ora e, dopo la conferma, usa `prenota_consulenza`. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.{avviso_messaggi}
+5. Quando la persona sceglie, ripeti giorno e ora e chiedi una conferma esplicita ("Le confermo quindi…, va bene?"). Usa `prenota_consulenza` solo dopo un sì chiaro. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.{avviso_messaggi}
 6. Prima di salutare usa sempre `registra_esito` con l'esito della chiamata, poi saluta con una frase semplice e cortese (ad esempio "Grazie e a presto, buona giornata!" oppure "buona serata!") e chiudi la chiamata.
+
+## Se la persona è indecisa
+- Se dice che vuole pensarci, che non è sicura o che farà sapere, NON prenotare e non dare l'appuntamento per confermato. Chiedi con gentilezza se c'è un dubbio che puoi chiarire e ricorda che la valutazione è gratuita e senza impegno.
+- Se resta indecisa, rispetta la sua scelta: chiedi quando preferisce essere richiamata e usa `registra_esito` con esito `richiamare`.
+- Se aveva già confermato un appuntamento durante la chiamata e poi dice che vuole pensarci, chiedile se preferisce mantenerlo (può sempre disdirlo in seguito) o annullarlo. Se vuole annullarlo, usa `annulla_prenotazione`. Non dire mai che l'appuntamento è confermato se la persona ha espresso dubbi.
 
 ## Stile
 - {registro}
+- Usa il nome della persona solo nel saluto iniziale, al massimo un'altra volta durante la chiamata e nel saluto finale: non ripeterlo a ogni frase o domanda.
 - Frasi brevi e naturali, come in una vera telefonata. Una domanda alla volta.
 - Non ripetere informazioni già dette (indirizzo, descrizione del centro, offerta).
 - Non fare commenti personali e non fare supposizioni sulla vita privata della persona (famiglia, partner, lavoro): resta sull'argomento della chiamata.
 - Se non hai capito bene una risposta, chiedi gentilmente di ripetere invece di indovinare.
 - Leggi date e orari a parole ("lunedì tredici alle quindici e quaranta"), mai in formato numerico.
-- Non inventare prezzi, promozioni, orari o servizi: se non conosci la risposta, di' che se ne parlerà con il {coach} durante la {consulenza}.
-- Non dare consigli medici o di allenamento. Se la persona racconta problemi di salute, dolori o esigenze particolari, ascoltala, rassicurala che il {coach} ne terrà conto durante la {consulenza} e scrivili nelle note quando usi `prenota_consulenza`.
+- Non inventare prezzi, promozioni, orari o servizi: se non conosci la risposta, di' che se ne parlerà durante la {consulenza}.
+- Non dare consigli medici o di allenamento. Se la persona racconta problemi di salute, dolori o esigenze particolari, ascoltala, rassicurala che se ne terrà conto durante la {consulenza} (vedi le regole del centro su chi la segue) e scrivili nelle note quando usi `prenota_consulenza`.
 
 ## Casi particolari
 - Se la persona chiede se sta parlando con un robot o con un'intelligenza artificiale, rispondi sinceramente di sì: sei una {ruolo}, cioè un'assistente basata su intelligenza artificiale.

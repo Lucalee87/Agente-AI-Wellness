@@ -38,8 +38,8 @@ class Settings:
     vapi_phone_number_id: str = field(default_factory=lambda: _env("VAPI_PHONE_NUMBER_ID"))
     vapi_server_secret: str = field(default_factory=lambda: _env("VAPI_SERVER_SECRET"))
     llm_model: str = field(default_factory=lambda: _env("LLM_MODEL", "claude-haiku-5-5"))
-    voice_provider_name: str = field(default_factory=lambda: _env("VOICE_PROVIDER_NAME", "11labs"))
-    voice_id: str = field(default_factory=lambda: _env("VOICE_ID"))
+    voice_provider_name: str = field(default_factory=lambda: _env("VOICE_PROVIDER_NAME", "azure"))
+    voice_id: str = field(default_factory=lambda: _env("VOICE_ID", "it-IT-ElsaNeural"))
     transcriber_language: str = field(default_factory=lambda: _env("TRANSCRIBER_LANGUAGE", "it"))
     max_concurrent_calls: int = field(default_factory=lambda: int(_env("MAX_CONCURRENT_CALLS", "3")))
 

@@ -56,6 +56,17 @@ TOOL_DEFINITIONS = [
         },
     },
     {
+        "name": "annulla_prenotazione",
+        "description": "Annulla la prenotazione fatta in questa chiamata, se la persona ci ripensa e chiede di annullarla.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "motivo": {"type": "string", "description": "Perché la persona annulla, in poche parole."},
+            },
+            "required": [],
+        },
+    },
+    {
         "name": "registra_esito",
         "description": "Registra l'esito della chiamata. Va chiamato sempre una volta prima di chiudere la telefonata.",
         "parameters": {
@@ -172,7 +183,26 @@ def _registra_esito(lead: dict, args: dict) -> str:
     return "Esito registrato. Saluta e chiudi la chiamata."
 
 
+def _annulla_prenotazione(lead: dict, args: dict) -> str:
+    with db.tx() as c:
+        ids = [r[0] for r in c.execute(
+            "SELECT id FROM appointments WHERE lead_id = ? AND status = 'confermato'", (lead["id"],)
+        )]
+        if not ids:
+            return "Non c'è nessuna prenotazione attiva da annullare."
+        c.execute("UPDATE appointments SET status = 'annullato' WHERE lead_id = ? AND status = 'confermato'", (lead["id"],))
+    for appointment_id in ids:
+        messaging.cancel_for_appointment(appointment_id)
+        calendars.sync_appointment(appointment_id)
+    # Il lead torna "da ricontattare": l'esito finale lo registra `registra_esito`
+    db.update_lead(lead["id"], status=db.RETRY, next_attempt_at=None,
+                   summary=f"Prenotazione annullata: {args.get('motivo') or 'ci vuole pensare'}")
+    leads.notify("prenotazione_annullata", lead["id"], motivo=args.get("motivo"))
+    return "Prenotazione annullata. Chiedi quando preferisce essere ricontattata e usa registra_esito."
+
+
 _HANDLERS = {
+    "annulla_prenotazione": _annulla_prenotazione,
     "trova_disponibilita": _trova_disponibilita,
     "prenota_consulenza": _prenota_consulenza,
     "registra_esito": _registra_esito,

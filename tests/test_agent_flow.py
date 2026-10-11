@@ -145,3 +145,17 @@ def test_admin_requires_password(client):
     assert client.get("/admin").status_code == 401
     r = client.get("/admin", auth=("admin", "admin-pass"))
     assert r.status_code == 200 and "Marco Verdi" in r.text
+
+
+def test_cancel_booking_when_person_wants_to_think():
+    a = _new_lead()
+    slot = _first_free_slot()
+    assert execute_tool(a, "prenota_consulenza", {"centro_id": "napoli-centro", "data_ora": slot}).startswith("Prenotazione")
+    out = execute_tool(a, "annulla_prenotazione", {"motivo": "ci vuole pensare"})
+    assert out.startswith("Prenotazione annullata")
+    assert db.get_lead(a)["status"] == db.RETRY
+    assert slot in execute_tool(a, "trova_disponibilita", {"centro_id": "napoli-centro"})  # lo slot torna libero
+    assert "Non c'è nessuna prenotazione" in execute_tool(a, "annulla_prenotazione", {})
+    when = (centers.local_now() + timedelta(days=2)).replace(hour=18, minute=0).strftime("%Y-%m-%dT%H:%M")
+    execute_tool(a, "registra_esito", {"esito": "richiamare", "richiamare_il": when})
+    assert db.get_lead(a)["next_attempt_at"] > db.now_utc()
