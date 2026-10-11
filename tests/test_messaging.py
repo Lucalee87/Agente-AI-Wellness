@@ -153,3 +153,16 @@ def test_short_sms_texts(mifit):
     # L'email resta nella versione completa
     _, mail = messaging.render("conferma", appt, lead, channel="email", now=morning)
     assert mail.startswith("Gentile Luca") and "bioimpedenza" in mail
+
+
+def test_two_hours_sms_reminds_fasting_only_for_bioimpedance(mifit):
+    lead = {"nome": "Luca"}
+    base = {"centro_id": "casoria", "start_at": "2026-10-14T18:10"}
+    _, dim = messaging.render("ore_prima", {**base, "tipo": "dimagrimento_tono"}, lead, channel="sms")
+    assert dim == ("MIFIT\nLuca, la aspettiamo oggi alle 18:10 presso MIFIT in Via E. Pimentel Fonseca 25, Casoria. "
+                   "Ricordi: digiuno da 2h e 1 bicchiere d'acqua 1h prima. A presto")
+    assert len(dim) <= 160
+    _, comb = messaging.render("ore_prima", {**base, "tipo": "combinata"}, lead, channel="sms")
+    assert "digiuno" in comb
+    _, post = messaging.render("ore_prima", {**base, "tipo": "posturale"}, lead, channel="sms")
+    assert post.endswith("Casoria. A presto") and "digiuno" not in post

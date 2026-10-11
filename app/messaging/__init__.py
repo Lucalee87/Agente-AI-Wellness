@@ -99,10 +99,11 @@ def render(kind: str, appt: dict, lead: dict, channel: str = "email",
     conf = centers.load_config()
     centro = conf.centri.get(appt["centro_id"])
     start = centers.parse_local(appt["start_at"])
-    istruzioni = ""
+    istruzioni = istruzioni_sms = ""
     for p in conf.brand.get("valutazione_per_obiettivo") or []:
         if p.get("tipo") and p.get("tipo") == appt.get("tipo"):
             istruzioni = p.get("istruzioni_messaggio", "")
+            istruzioni_sms = p.get("istruzioni_sms", "")
     nome = ((lead.get("nome") or "").split(" ")[0] or "cliente").capitalize()
     sent_local = (now or datetime.now(timezone.utc)).astimezone(conf.tz)
     values = {
@@ -115,12 +116,13 @@ def render(kind: str, appt: dict, lead: dict, channel: str = "email",
         "centro": centro.nome if centro else "",
         "indirizzo": centro.indirizzo if centro else "",
         "istruzioni": istruzioni,
+        "istruzioni_sms": istruzioni_sms,
         "chiusura": cfg.get("chiusura", ""),
     }
     template = (channel == "sms" and cfg.get(f"sms_testo_{kind}")) or cfg.get(f"testo_{kind}", "")
     text = template.format(**values)
     # Righe vuote (es. nessuna istruzione specifica) non servono
-    text = "\n".join(line for line in text.splitlines() if line.strip())
+    text = "\n".join(" ".join(line.split()) for line in text.splitlines() if line.strip())
     subject = (cfg.get("oggetto_email") or {}).get(kind, "Il suo appuntamento")
     return subject, text
 

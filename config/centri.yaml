@@ -21,6 +21,8 @@ brand:
       obiettivo: "Dimagrire oppure migliorare il tono muscolare"
       spiegazione: "La valutazione comprende una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri: così condividiamo insieme il suo punto di partenza. Poi c'è un'anamnesi con il nostro coach, in cui analizziamo passo dopo passo quali sono i suoi obiettivi da raggiungere e in che modo."
       istruzioni_messaggio: "Le ricordiamo che per effettuare correttamente la bioimpedenza dovrà essere a digiuno da almeno 2 ore e bere un bicchiere d'acqua 1 ora prima dell'appuntamento."
+      # Versione breve per l'SMS di 2 ore prima
+      istruzioni_sms: "Ricordi: digiuno da 2h e 1 bicchiere d'acqua 1h prima."
     - tipo: posturale
       obiettivo: "Risolvere problemi posturali (mal di schiena, dolori al collo, alle spalle, postura scorretta...)"
       spiegazione: "La valutazione comprende dei test di valutazione posturale; guardiamo insieme gli eventuali referti che ha a disposizione e facciamo un'anamnesi con il nostro posturologo, in cui analizziamo passo dopo passo come risolvere i suoi problemi e ridurre i dolori che oggi la affliggono. Quando confermi l'appuntamento, invita la persona a portare eventuali referti (radiografie, risonanze, visite)."
@@ -29,6 +31,7 @@ brand:
       obiettivo: "Dimagrire o migliorare il tono muscolare E ANCHE la postura"
       spiegazione: "La valutazione comprende sia una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri, sia dei test di valutazione posturale: ci permetteranno di condividere il suo punto di partenza e il percorso da fare insieme."
       istruzioni_messaggio: "Le ricordiamo che per effettuare correttamente la bioimpedenza dovrà essere a digiuno da almeno 2 ore e bere un bicchiere d'acqua 1 ora prima dell'appuntamento. Se ha referti (radiografie, risonanze, visite), li porti con sé."
+      istruzioni_sms: "Ricordi: digiuno da 2h e 1 bicchiere d'acqua 1h prima."
   # Come si chiama la figura che segue il cliente nel centro
   professionista: "coach"
   # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
@@ -62,7 +65,8 @@ messaggi:
   # Segnaposto in più: {giorno_breve} (es. mer 14/10) {indirizzo_breve} {saluto_finale} (Buona Giornata / Buona Serata)
   sms_testo_conferma: "MIFIT\n{nome}, le confermo la Valutazione Gratuita {giorno_breve} ore {ora}, presso MIFIT in {indirizzo_breve}. {saluto_finale}"
   sms_testo_giorno_prima: "MIFIT\n{nome}, le ricordo la Valutazione Gratuita di domani {giorno_breve} ore {ora}, presso MIFIT in {indirizzo_breve}. A presto"
-  sms_testo_ore_prima: "MIFIT\n{nome}, la aspettiamo oggi alle {ora} per la Valutazione Gratuita, presso MIFIT in {indirizzo_breve}. A presto"
+  # {istruzioni_sms}: promemoria breve per tipo di valutazione (es. digiuno per la bioimpedenza)
+  sms_testo_ore_prima: "MIFIT\n{nome}, la aspettiamo oggi alle {ora} presso MIFIT in {indirizzo_breve}. {istruzioni_sms} A presto"
   oggetto_email:
     conferma: "Conferma della sua valutazione gratuita - MIFIT"
     giorno_prima: "Promemoria: domani la sua valutazione gratuita - MIFIT"
