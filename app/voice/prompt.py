@@ -55,12 +55,15 @@ def system_prompt(lead: dict) -> str:
         if _formale(b) else "Dai del tu alla persona."
     )
     risposta_prezzi = (b.get("risposta_prezzi") or "").replace("{nome}", (lead.get("nome") or "").split(" ")[0] or "").strip(", ")
-    risposta_ricontatto = (b.get("risposta_ricontatto") or "").replace("{sede}", centro.sede if centro else "")
+    sedi = " o ".join(c.sede for c in cfg.centri.values())
+    risposta_ricontatto = (b.get("risposta_ricontatto") or "").replace(
+        "{sede}", centro.sede if centro else f"[sede scelta dalla persona: {sedi}]"
+    )
     sezione_ricontatto = f"""
 ## Se nessun orario va bene
 Non puoi inserire orari diversi da quelli che ti restituisce `trova_disponibilita`. Se la persona non è disponibile in nessuno degli orari proposti (dopo aver provato anche altri giorni):
 1. Chiedi in quale fascia oraria preferisce essere chiamata (ad esempio mattina, pausa pranzo, dopo le 18) e in quali giorni.
-2. Usa `richiedi_ricontatto_responsabile` con la fascia oraria, l'obiettivo e le note.
+2. Usa `richiedi_ricontatto_responsabile` con la sede, la fascia oraria, l'obiettivo e le note.
 3. Rispondi con questa frase: "{risposta_ricontatto}"
 Non dire mai che verrà richiamata "domani" o in un momento preciso, e non fissare tu altri orari.
 """ if risposta_ricontatto else ""
@@ -72,6 +75,14 @@ Quando il cliente chiede prezzi, costi o abbonamenti, rispondi così (puoi adatt
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
     ruolo = b.get("ruolo_assistente", "assistente virtuale")
+    if len(cfg.centri) > 1:
+        domanda_sede = b.get("domanda_sede") or f"Quale sede preferisce tra {sedi}?"
+        passo_sede = (
+            f"Subito dopo, chiedi: \"{domanda_sede}\". Se la sede è già indicata nei dati, chiedi solo conferma. "
+            "Da questo momento usa il `centro_id` della sede scelta per cercare gli orari e prenotare."
+        )
+    else:
+        passo_sede = "La sede è una sola: non serve chiedere quale preferisce."
     canali = [c for c in (cfg.messaggi or {}).get("canali", []) if c in ("sms", "email")]
     avviso_messaggi = (
         " Dille anche che riceverà a breve un messaggio di conferma con tutti i dettagli."
@@ -96,10 +107,10 @@ Sii flessibile e ascolta davvero la persona: le sue risposte non saranno sempre 
 - Spiega la {consulenza} con parole tue, in due o tre frasi brevi, riprendendo le parole e le esigenze della persona: non leggere il testo come un copione.
 - Riporta l'obiettivo e le esigenze nel campo `obiettivo` e nelle note quando usi `prenota_consulenza`, e indica sempre il `tipo_valutazione` corrispondente.
 """
-        passo_spiegazione = f"2. In base alla risposta, spiega cosa include la {consulenza} seguendo la sezione \"Cosa include la {consulenza}\" e ricorda che è gratuita."
+        passo_spiegazione = f"3. In base all'obiettivo, spiega cosa include la {consulenza} seguendo la sezione \"Cosa include la {consulenza}\" e ricorda che è gratuita."
     else:
         sezione_valutazione = ""
-        passo_spiegazione = f"2. Spiega in breve cos'è la {consulenza}: {offerta}."
+        passo_spiegazione = f"3. Spiega in breve cos'è la {consulenza}: {offerta}."
 
     return f"""Sei {b.get('nome_assistente', 'Giulia')}, {ruolo} di {b.get('nome', 'FitClub')}. {b.get('descrizione', '')}
 Stai facendo una telefonata in uscita, in italiano, a una persona che ha appena lasciato i suoi dati per richiedere informazioni.
@@ -126,8 +137,8 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 
 ## Come condurre la chiamata
 1. Dopo il saluto, se la persona ha tempo, chiedile: "{domanda}". Se l'obiettivo è già indicato nei dati, chiedile conferma invece di ripetere la domanda. Mostrati sinceramente interessata alla risposta.
+2. {passo_sede}
 {passo_spiegazione}
-3. Se ci sono più centri e quello di interesse non è noto, chiedi quale preferisce.
 4. Usa lo strumento `trova_disponibilita` per vedere gli orari liberi e proponi al massimo due o tre opzioni alla volta, chiedendo prima se preferisce mattina, pomeriggio o sera.
 5. Quando la persona sceglie, ripeti giorno e ora e chiedi una conferma esplicita ("Le confermo quindi…, va bene?"). Usa `prenota_consulenza` solo dopo un sì chiaro. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.{avviso_messaggi}
 6. Prima di salutare usa sempre `registra_esito` con l'esito della chiamata, poi saluta con una frase semplice e cortese (ad esempio "Grazie e a presto, buona giornata!" oppure "buona serata!") e chiudi la chiamata.

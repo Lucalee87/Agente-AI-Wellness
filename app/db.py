@@ -71,6 +71,18 @@ CREATE TABLE IF NOT EXISTS messages (
     error TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_messages_due ON messages (status, send_at);
+
+CREATE TABLE IF NOT EXISTS staff_notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lead_id INTEGER NOT NULL REFERENCES leads(id),
+    event TEXT NOT NULL,
+    payload TEXT,
+    created_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',   -- pending | inviato | simulato | errore | saltato
+    sent_at TEXT,
+    error TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_staff_pending ON staff_notifications (status, created_at);
 """
 
 # Stati possibili di un lead

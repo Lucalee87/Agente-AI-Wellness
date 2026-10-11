@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import calendars, centers, db, leads, messaging
 from .config import settings
+from .messaging import staff
 from .voice import vapi
 
 log = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ def tick() -> int:
     calendars.sync_pending()
     try:
         messaging.send_due()
+        staff.flush_stale()
     except Exception:
         log.exception("Errore nell'invio dei messaggi")
     if not centers.is_calling_time():
@@ -125,6 +127,11 @@ def handle_end_of_call(lead_id: int, message: dict) -> None:
             )
     if summary and not lead.get("summary"):
         db.update_lead(lead_id, summary=summary)
+    # Avvisi al responsabile nati durante la chiamata: un'unica email con la trascrizione
+    try:
+        staff.flush_for_lead(lead_id, transcript=transcript, recording_url=recording, summary=summary)
+    except Exception:
+        log.exception("Avviso al responsabile per il lead %s non riuscito", lead_id)
     log.info("Fine chiamata lead %s: %s (%s)", lead_id, outcome, ended_reason)
 
 

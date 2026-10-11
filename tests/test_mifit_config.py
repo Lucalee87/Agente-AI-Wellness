@@ -42,7 +42,10 @@ def test_prompt_rules(mifit):
     assert "trainer" not in sp and "coach" in sp
     assert "parla SEMPRE del posturologo" in sp
     assert '"Essendo un percorso personalizzato, il nostro format prevede una valutazione gratuita' in sp
-    assert "dal nostro responsabile di Casoria, per trovare un giorno e un orario comodi" in sp
+    assert "dal nostro responsabile di [sede scelta dalla persona: Casoria o Lusciano], per trovare" in sp
+    sp_casoria = prompt.system_prompt({**lead, "centro_id": "casoria"})
+    assert "dal nostro responsabile di Casoria, per trovare un giorno e un orario comodi" in sp_casoria
+    assert "MIFIT Casoria (id `casoria`)" in sp_casoria
     assert "non dire mai frasi come 'mi dispiace, non posso dire i prezzi per telefono'" in sp.lower() or "mi dispiace, non posso dire i prezzi" in sp
     assert "NON prenotare" in sp and "annulla_prenotazione" in sp
     assert "al massimo DUE volte" in sp
@@ -52,4 +55,3 @@ def test_prompt_rules(mifit):
     assert sp.count("bioimpedenza") == 2 and "posturologo" in sp and "Sii flessibile" in sp
     assert "proprio medico" not in sp and "non indirizzarlo dal medico" in sp
     assert sp.startswith("Sei Vittoria, consulente virtuale di MIFIT.")
-    assert "MIFIT Casoria (id `casoria`)" in sp  # unico centro: già selezionato

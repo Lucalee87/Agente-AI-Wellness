@@ -64,6 +64,7 @@ TOOL_DEFINITIONS = [
         "parameters": {
             "type": "object",
             "properties": {
+                "centro_id": {"type": "string", "description": "Id della sede scelta dalla persona, se nota."},
                 "fascia_oraria": {"type": "string", "description": "Quando la persona preferisce essere richiamata (es. 'mattina tra le 10 e le 12', 'dopo le 18')."},
                 "obiettivo": {"type": "string", "description": "Obiettivo della persona, in poche parole."},
                 "tipo_valutazione": {"type": "string", "description": "Codice tipo di valutazione, se già chiaro (es. dimagrimento_tono, posturale, combinata)."},
@@ -115,6 +116,9 @@ def _trova_disponibilita(lead: dict, args: dict) -> str:
             from_day = date.fromisoformat(args["dal_giorno"])
         except ValueError:
             return "Data non valida: usa il formato YYYY-MM-DD."
+    if not cfg.centri[centro_id].orari_consulenze:
+        return ("Per questa sede gli appuntamenti vengono fissati direttamente dal responsabile: chiedi alla persona "
+                "in quale fascia oraria preferisce essere chiamata e usa richiedi_ricontatto_responsabile.")
     lo, hi = FASCE.get(args.get("fascia") or "qualsiasi", (0, 24))
     slots = [s for s in centers.free_slots(centro_id, from_day, days=10, limit=40) if lo <= s.hour < hi][:6]
     if not slots:
@@ -223,6 +227,8 @@ def _annulla_prenotazione(lead: dict, args: dict) -> str:
 
 def _richiedi_ricontatto_responsabile(lead: dict, args: dict) -> str:
     fields = {"status": db.STAFF_CALLBACK, "next_attempt_at": None}
+    if args.get("centro_id") in centers.load_config().centri:
+        fields["centro_id"] = args["centro_id"]
     if args.get("obiettivo"):
         fields["obiettivo"] = args["obiettivo"]
     nota = "; ".join(x for x in (f"Richiamare: {args.get('fascia_oraria')}", args.get("note")) if x)

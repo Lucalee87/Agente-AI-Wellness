@@ -15,6 +15,8 @@ brand:
   offerta: "una visita completamente gratuita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
   # Domanda per capire l'obiettivo del cliente
   domanda_obiettivo: "Qual è il suo obiettivo principale: dimagrire, migliorare il tono muscolare o risolvere problemi posturali?"
+  # Domanda sulla sede, fatta subito dopo quella sull'obiettivo
+  domanda_sede: "È più comoda per Lei la sede di Casoria o quella di Lusciano?"
   # Cosa include la valutazione, a seconda dell'obiettivo del cliente
   valutazione_per_obiettivo:
     - tipo: dimagrimento_tono
@@ -78,11 +80,15 @@ messaggi:
     ore_prima: "Promemoria: oggi la sua valutazione gratuita - MIFIT"
 
 # Avvisi al responsabile del centro (SMS ed email) per gli eventi importanti
+# L'email parte a fine chiamata e contiene anche la trascrizione della conversazione.
 notifiche_staff:
-  canali: [sms, email]
+  canali: [email]
   # ricontatto_responsabile = il cliente non ha trovato un orario e va richiamato a mano
   # esito_chiamata = non interessato, numero errato, non chiamare più
-  eventi: [ricontatto_responsabile, consulenza_prenotata, prenotazione_annullata, lead_irraggiungibile]
+  eventi: [ricontatto_responsabile, consulenza_prenotata, prenotazione_annullata, lead_irraggiungibile, esito_chiamata]
+  # Destinatario usato quando la sede del cliente non è ancora nota
+  responsabile:
+    email: "mifitassistenza@gmail.com"
 
 # Fascia oraria in cui l'agente può chiamare i lead
 orari_chiamate:
@@ -102,11 +108,11 @@ centri:
     indirizzo_breve: "Via E. Pimentel Fonseca 25, Casoria"
     # Nome della sede usato a voce ("il nostro responsabile di Casoria")
     sede: "Casoria"
-    # Chi riceve gli avvisi (SMS/email) per questo centro
+    # Chi riceve gli avvisi per questo centro
     responsabile:
       nome: "Luca"
       telefono: "+393201720477"
-      email: ""
+      email: "mifitassistenza@gmail.com"
     durata_consulenza_min: 40
     posti_per_slot: 1
     orari_consulenze:
@@ -117,4 +123,22 @@ centri:
     meta_form_ids: []
     google_form_ids: []
     # ID del Google Calendar del centro (lo aggiungiamo al passo 6)
+    google_calendar_id: ""
+
+  - id: lusciano
+    nome: "MIFIT Lusciano"
+    indirizzo: "Via Carminiello 66, Lusciano (CE)"
+    indirizzo_breve: "Via Carminiello 66, Lusciano"
+    sede: "Lusciano"
+    responsabile:
+      nome: "Luca"
+      telefono: "+393201720477"
+      email: "mifitassistenza@gmail.com"
+    durata_consulenza_min: 40
+    posti_per_slot: 1
+    # DA COMPLETARE: giorni e orari delle valutazioni a Lusciano.
+    # Finché è vuoto, per Lusciano Vittoria non propone orari e passa la richiesta al responsabile.
+    orari_consulenze: {}
+    meta_form_ids: []
+    google_form_ids: []
     google_calendar_id: ""

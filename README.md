@@ -124,7 +124,17 @@ I testi cambiano in base al tipo di valutazione (bioimpedenza, posturale o entra
 
 Configurazione: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM` per gli SMS; `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM` per le email (es. Brevo); poi `MESSAGGI_ATTIVI=1`. Finché non è attivo, i messaggi vengono solo scritti nei log.
 
-### 8. Notifiche allo staff (facoltativo)
+### 8. Avvisi al responsabile (email)
+A fine chiamata il responsabile della sede riceve **un'email** con l'esito e la **trascrizione della conversazione** quando:
+- il cliente non ha trovato un orario e va **richiamato** (con la fascia oraria preferita);
+- è stata **prenotata** una valutazione;
+- una prenotazione è stata **annullata**;
+- il cliente **non è interessato** (o numero errato, o non vuole essere ricontattato);
+- il lead **non risponde** dopo tutti i tentativi.
+
+Destinatari ed eventi: `responsabile` di ogni centro e sezione `notifiche_staff` in `config/centri.yaml`. Per inviare da Gmail: `SMTP_HOST=smtp.gmail.com`, `SMTP_USER` = indirizzo Gmail, `SMTP_PASSWORD` = una "password per le app" di Google.
+
+### 9. Notifiche via webhook (facoltativo)
 Imposta `NOTIFY_WEBHOOK_URL` (es. un webhook Zapier/Make/Slack): riceverai un evento a ogni consulenza prenotata, rifiuto o lead irraggiungibile.
 
 ## Aspetti legali (Italia/UE) — da verificare con il tuo consulente
