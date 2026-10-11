@@ -58,6 +58,25 @@ def system_prompt(lead: dict) -> str:
     regole = "\n".join(f"- {r}" for r in b.get("regole", [])) or "- Nessuna regola aggiuntiva."
 
     ruolo = b.get("ruolo_assistente", "assistente virtuale")
+    domanda = b.get("domanda_obiettivo") or (
+        "qual è il suo obiettivo (ad esempio migliorare la postura, perdere peso, tonificare, stare meglio)"
+    )
+    percorsi = b.get("valutazione_per_obiettivo") or []
+    if percorsi:
+        sezione_valutazione = f"""
+## Cosa include la {consulenza} (in base all'obiettivo)
+""" + "\n".join(f"- Se l'obiettivo è: {p['obiettivo']} → {p['spiegazione']}" for p in percorsi) + f"""
+
+Sii flessibile e ascolta davvero la persona: le sue risposte non saranno sempre una delle tre opzioni.
+- Collega quello che dice al caso più vicino (ad esempio "ho mal di schiena" → problemi posturali; "voglio rimettermi in forma" o "perdere qualche chilo" → dimagrire o tono; se cita sia il peso sia dolori o postura → caso combinato).
+- Se non è chiaro, fai una breve domanda di approfondimento prima di spiegare.
+- Spiega la {consulenza} con parole tue, in due o tre frasi brevi, riprendendo le parole e le esigenze della persona: non leggere il testo come un copione.
+- Riporta l'obiettivo e le esigenze nel campo `obiettivo` e nelle note quando usi `prenota_consulenza`.
+"""
+        passo_spiegazione = f"2. In base alla risposta, spiega cosa include la {consulenza} seguendo la sezione \"Cosa include la {consulenza}\" e ricorda che è gratuita."
+    else:
+        sezione_valutazione = ""
+        passo_spiegazione = f"2. Spiega in breve cos'è la {consulenza}: {offerta}."
 
     return f"""Sei {b.get('nome_assistente', 'Giulia')}, {ruolo} di {b.get('nome', 'FitClub')}. {b.get('descrizione', '')}
 Stai facendo una telefonata in uscita, in italiano, a una persona che ha appena lasciato i suoi dati per richiedere informazioni.
@@ -78,11 +97,12 @@ Fissare un appuntamento per la {consulenza}: {offerta}. Fallo nel modo più natu
 ## Centri
 {centri}
 
+{sezione_valutazione}
 Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.strftime('%H:%M')} (fuso Europe/Rome).
 
 ## Come condurre la chiamata
-1. Dopo il saluto, se la persona ha tempo, chiedile in una frase qual è il suo obiettivo (ad esempio migliorare la postura, perdere peso, tonificare, stare meglio) se non lo sai già, e mostrati sinceramente interessata alla risposta.
-2. Spiega in breve cos'è la {consulenza}: {offerta}.
+1. Dopo il saluto, se la persona ha tempo, chiedile: "{domanda}". Se l'obiettivo è già indicato nei dati, chiedile conferma invece di ripetere la domanda. Mostrati sinceramente interessata alla risposta.
+{passo_spiegazione}
 3. Se ci sono più centri e quello di interesse non è noto, chiedi quale preferisce.
 4. Usa lo strumento `trova_disponibilita` per vedere gli orari liberi e proponi al massimo due o tre opzioni alla volta, chiedendo prima se preferisce mattina, pomeriggio o sera.
 5. Quando la persona sceglie, ripeti giorno e ora e, dopo la conferma, usa `prenota_consulenza`. Solo a questo punto comunica l'indirizzo del centro: dillo una sola volta in tutta la chiamata e non ripeterlo, a meno che la persona non lo chieda.

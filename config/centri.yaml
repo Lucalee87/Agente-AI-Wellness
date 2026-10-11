@@ -13,6 +13,16 @@ brand:
   # Come si chiama l'appuntamento che l'agente deve fissare
   nome_consulenza: "valutazione dello stato di forma"
   offerta: "una visita completamente gratuita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
+  # Domanda per capire l'obiettivo del cliente
+  domanda_obiettivo: "Qual è il suo obiettivo principale: dimagrire, migliorare il tono muscolare o risolvere problemi posturali?"
+  # Cosa include la valutazione, a seconda dell'obiettivo del cliente
+  valutazione_per_obiettivo:
+    - obiettivo: "Dimagrire oppure migliorare il tono muscolare"
+      spiegazione: "La valutazione comprende una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri: così condividiamo insieme il suo punto di partenza. Poi c'è un'anamnesi con il nostro coach, in cui analizziamo passo dopo passo quali sono i suoi obiettivi da raggiungere e in che modo."
+    - obiettivo: "Risolvere problemi posturali (mal di schiena, dolori al collo, alle spalle, postura scorretta...)"
+      spiegazione: "La valutazione comprende dei test di valutazione posturale; guardiamo insieme gli eventuali referti che ha a disposizione e facciamo un'anamnesi con il nostro posturologo, in cui analizziamo passo dopo passo come risolvere i suoi problemi e ridurre i dolori che oggi la affliggono. Quando confermi l'appuntamento, invita la persona a portare eventuali referti (radiografie, risonanze, visite)."
+    - obiettivo: "Dimagrire o migliorare il tono muscolare E ANCHE la postura"
+      spiegazione: "La valutazione comprende sia una bioimpedenza, cioè un esame che ci permette di valutare massa grassa, massa magra, idratazione corporea e altri parametri, sia dei test di valutazione posturale: ci permetteranno di condividere il suo punto di partenza e il percorso da fare insieme."
   # Come si chiama la figura che segue il cliente nel centro
   professionista: "coach"
   # Come l'agente si rivolge al cliente: "lei" (formale) oppure "tu" (informale)
@@ -22,7 +32,7 @@ brand:
     - "Non dire MAI prezzi, costi, abbonamenti o cifre, nemmeno indicative o 'a partire da'. Se il cliente insiste, spiega che ogni percorso è personalizzato: solo dopo la valutazione gratuita possiamo capire qual è il percorso giusto e presentare un preventivo su misura."
     - "Sottolinea che la valutazione è completamente gratuita e senza impegno: solo dopo aver visto il preventivo personalizzato il cliente deciderà liberamente se iniziare un percorso con noi."
     - "Se il cliente chiede come funziona il percorso, spiega che è un allenamento personalizzato con un coach, focalizzato su postura e ricomposizione corporea, e che i dettagli si definiscono insieme durante la valutazione."
-    - "Se il cliente racconta problemi fisici, dolori, infortuni, patologie o esigenze particolari, non dare consigli e non indirizzarlo dal medico: ascolta con attenzione, rassicuralo che il coach ne terrà conto e li approfondirà con lui durante la valutazione, e riporta tutto nelle note della prenotazione."
+    - "Se il cliente racconta problemi fisici, dolori, infortuni, patologie o esigenze particolari, non dare consigli e non indirizzarlo dal medico: ascolta con attenzione, rassicuralo che il coach (o il posturologo, per i problemi posturali) ne terrà conto e li approfondirà con lui durante la valutazione, e riporta tutto nelle note della prenotazione."
     - "Se il cliente chiede un giorno o un orario non disponibile, non dire mai 'non è possibile': rispondi 'Nel giorno da Lei indicato le valutazioni sono al completo, abbiamo disponibilità…' e proponi subito due o tre alternative."
   timezone: "Europe/Rome"
 
