@@ -29,7 +29,7 @@ def test_prompt_and_assistant_config():
 def test_availability_and_booking_prevents_double_booking():
     a, b = _new_lead("3331111111"), _new_lead("3332222222")
     out = execute_tool(a, "trova_disponibilita", {"centro_id": "napoli-centro"})
-    assert "Slot liberi" in out
+    assert "PROPONI ORA SOLO QUESTE DUE OPZIONI" in out
     slot = _first_free_slot()
     assert slot in out
 
@@ -90,7 +90,7 @@ def test_dialer_and_vapi_webhooks(client, monkeypatch):
     }})
     assert r.status_code == 200
     [res] = r.json()["results"]
-    assert res["toolCallId"] == "t1" and "Slot liberi" in res["result"]
+    assert res["toolCallId"] == "t1" and "Orari liberi" in res["result"]
 
     # Il lead non risponde: report di fine chiamata -> nuovo tentativo pianificato
     r = client.post("/webhooks/vapi", headers=VAPI_HEADERS, json={"message": {
@@ -159,3 +159,14 @@ def test_cancel_booking_when_person_wants_to_think():
     when = (centers.local_now() + timedelta(days=2)).replace(hour=18, minute=0).strftime("%Y-%m-%dT%H:%M")
     execute_tool(a, "registra_esito", {"esito": "richiamare", "richiamare_il": when})
     assert db.get_lead(a)["next_attempt_at"] > db.now_utc()
+
+
+def test_availability_proposes_two_options_on_different_days():
+    a = _new_lead()
+    out = execute_tool(a, "trova_disponibilita", {"centro_id": "napoli-centro", "fascia": "pomeriggio"})
+    proposte = out.split("PROPONI ORA SOLO QUESTE DUE OPZIONI:\n")[1].split("\nALTRE OPZIONI")[0].splitlines()
+    assert len(proposte) == 2
+    giorni = {p.split("data_ora: ")[1][:10] for p in proposte}
+    assert len(giorni) == 2
+    assert all(13 <= int(p.split("data_ora: ")[1][11:13]) < 18 for p in proposte)
+    assert "ALTRE OPZIONI DI RISERVA" in out

@@ -31,7 +31,7 @@ TOOL_DEFINITIONS = [
                 "fascia": {
                     "type": "string",
                     "enum": ["mattina", "pomeriggio", "sera", "qualsiasi"],
-                    "description": "Preferenza oraria del cliente.",
+                    "description": "Fascia oraria scelta dal cliente: chiedila sempre prima di cercare gli orari.",
                 },
             },
             "required": ["centro_id"],
@@ -120,11 +120,24 @@ def _trova_disponibilita(lead: dict, args: dict) -> str:
         return ("Per questa sede gli appuntamenti vengono fissati direttamente dal responsabile: chiedi alla persona "
                 "in quale fascia oraria preferisce essere chiamata e usa richiedi_ricontatto_responsabile.")
     lo, hi = FASCE.get(args.get("fascia") or "qualsiasi", (0, 24))
-    slots = [s for s in centers.free_slots(centro_id, from_day, days=10, limit=40) if lo <= s.hour < hi][:6]
+    slots = [s for s in centers.free_slots(centro_id, from_day, days=14, limit=60) if lo <= s.hour < hi]
     if not slots:
         return "Nessuno slot libero in quel periodo. Prova con un altro giorno, un'altra fascia o un altro centro."
-    righe = [f"- {centers.format_it(s)} (data_ora: {s.strftime('%Y-%m-%dT%H:%M')})" for s in slots]
-    return f"Slot liberi presso {cfg.centri[centro_id].nome}:\n" + "\n".join(righe)
+    # Due proposte, possibilmente in giorni diversi; le altre restano di riserva
+    first = slots[0]
+    second = next((x for x in slots[1:] if x.date() != first.date()), slots[1] if len(slots) > 1 else None)
+    proposte = [x for x in (first, second) if x]
+    riserva = [x for x in slots if x not in proposte][:6]
+
+    def riga(x):
+        return f"- {centers.format_it(x)} (data_ora: {x.strftime('%Y-%m-%dT%H:%M')})"
+
+    out = [f"Orari liberi presso {cfg.centri[centro_id].nome}.",
+           "PROPONI ORA SOLO QUESTE DUE OPZIONI:", *map(riga, proposte)]
+    if riserva:
+        out += ["ALTRE OPZIONI DI RISERVA (non elencarle: proponine due alla volta solo se le prime non vanno bene):",
+                *map(riga, riserva)]
+    return "\n".join(out)
 
 
 def _prenota_consulenza(lead: dict, args: dict) -> str:
