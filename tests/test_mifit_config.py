@@ -48,7 +48,8 @@ def test_prompt_rules(mifit):
     assert "MIFIT Casoria (id `casoria`)" in sp_casoria
     assert "non dire mai frasi come 'mi dispiace, non posso dire i prezzi per telefono'" in sp.lower() or "mi dispiace, non posso dire i prezzi" in sp
     assert "NON prenotare" in sp and "annulla_prenotazione" in sp
-    assert "al massimo DUE volte" in sp
+    assert "UNA SOLA VOLTA, nel saluto iniziale" in sp
+    assert "Maria" not in sp  # il nome non compare nel copione: solo nella frase di apertura
     assert "Nel giorno da Lei indicato le valutazioni sono al completo" in sp
     assert "una sola volta" in sp
     assert "dimagrire, migliorare il tono muscolare o risolvere problemi posturali?" in sp

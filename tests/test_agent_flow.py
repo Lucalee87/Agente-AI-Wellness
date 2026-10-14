@@ -24,6 +24,7 @@ def test_prompt_and_assistant_config():
     names = {t.get("function", {}).get("name") for t in assistant["model"]["tools"]}
     assert {"trova_disponibilita", "prenota_consulenza", "registra_esito"} <= names
     assert "FitClub Napoli Centro" in assistant["model"]["messages"][0]["content"]
+    assert assistant["stopSpeakingPlan"]["numWords"] == 2 and assistant["backgroundDenoisingEnabled"] is True
 
 
 def test_availability_and_booking_prevents_double_booking():

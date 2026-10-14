@@ -53,6 +53,10 @@ def build_assistant(lead: dict) -> dict:
         "voicemailDetection": {"provider": "vapi"},
         "maxDurationSeconds": 600,
         "silenceTimeoutSeconds": 30,
+        # Evita che Vittoria si interrompa per rumori, colpi di tosse o "sì/ok" di sottofondo:
+        # smette di parlare solo se la persona dice almeno 2 parole
+        "stopSpeakingPlan": {"numWords": 2, "voiceSeconds": 0.3, "backoffSeconds": 1},
+        "backgroundDenoisingEnabled": True,
         "metadata": {"lead_id": lead["id"]},
     }
 

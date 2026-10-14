@@ -123,7 +123,7 @@ Fissare un appuntamento per la {consulenza}: {offerta}. Fallo nel modo più natu
 
 {sezione_prezzi}
 ## Dati della persona
-- Nome: {lead.get('nome') or 'non indicato'}
+- Nome: lo hai già detto nel saluto iniziale. NON ripeterlo mai più durante la chiamata.
 - Provenienza: {lead.get('source')}
 - Centro di interesse: {centro_txt}
 - Obiettivo indicato nel modulo: {lead.get('obiettivo') or 'non indicato'}
@@ -151,7 +151,7 @@ Oggi è {centers.format_it(oggi).rsplit(' alle ', 1)[0]} {oggi.year}, ore {oggi.
 
 ## Stile
 - {registro}
-- IMPORTANTE: pronuncia il nome della persona al massimo DUE volte in tutta la telefonata, cioè nel saluto iniziale e nel saluto finale. In tutte le altre frasi non usarlo mai: né all'inizio delle risposte, né nelle domande, né nelle conferme.
+- IMPORTANTE: il nome della persona si dice UNA SOLA VOLTA, nel saluto iniziale (già fatto). Dopo non usarlo mai più: né all'inizio delle risposte, né nelle domande, né nelle conferme, né nel saluto finale. Rivolgiti alla persona solo con il Lei.
 - Frasi brevi e naturali, come in una vera telefonata. Una domanda alla volta.
 - Non ripetere informazioni già dette (indirizzo, descrizione del centro, offerta).
 - Non fare commenti personali e non fare supposizioni sulla vita privata della persona (famiglia, partner, lavoro): resta sull'argomento della chiamata.
