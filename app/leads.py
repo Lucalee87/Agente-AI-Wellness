@@ -14,7 +14,7 @@ from .phone import normalize_phone
 log = logging.getLogger(__name__)
 
 # Stati in cui un lead è ancora "aperto": un nuovo modulo dallo stesso numero non crea un duplicato
-ACTIVE_STATUSES = (db.NEW, db.RETRY, db.CALLING)
+ACTIVE_STATUSES = (db.NEW, db.RETRY, db.CALLING, db.CHAT)
 
 
 @dataclass
@@ -60,10 +60,16 @@ def create_lead(data: LeadIn) -> LeadResult:
             if row:
                 return LeadResult(row["id"], False, "lead già ricevuto")
         row = c.execute(
-            f"SELECT id FROM leads WHERE telefono = ? AND status IN ({','.join('?' * len(ACTIVE_STATUSES))})",
+            f"SELECT * FROM leads WHERE telefono = ? AND status IN ({','.join('?' * len(ACTIVE_STATUSES))})",
             (telefono, *ACTIVE_STATUSES),
         ).fetchone()
         if row:
+            # Completa i dati mancanti: ad esempio la chat è partita prima che arrivasse il lead da Meta
+            missing = {k: v for k, v in (("nome", (data.nome or "").strip() or None), ("email", data.email),
+                                         ("centro_id", centro_id), ("obiettivo", data.obiettivo))
+                       if v and not row[k]}
+            if missing:
+                db.update_lead(row["id"], **missing)
             return LeadResult(row["id"], False, "lead già in lavorazione con lo stesso numero")
         row = c.execute(
             "SELECT id FROM leads WHERE telefono = ? AND status = ?", (telefono, db.DO_NOT_CALL)

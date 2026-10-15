@@ -43,6 +43,13 @@ class Settings:
     transcriber_language: str = field(default_factory=lambda: _env("TRANSCRIBER_LANGUAGE", "it"))
     max_concurrent_calls: int = field(default_factory=lambda: int(_env("MAX_CONCURRENT_CALLS", "3")))
 
+    # Come Vittoria contatta i lead: "telefono" (chiamata con Vapi) oppure "chat" (chat sul sito dopo il modulo)
+    modalita_contatto: str = field(default_factory=lambda: _env("MODALITA_CONTATTO", "telefono").lower())
+    # Lead che non apre la chat entro questi minuti: avviso al responsabile per richiamarlo a mano
+    chat_attesa_minuti: int = field(default_factory=lambda: int(_env("CHAT_ATTESA_MINUTI", "30")))
+    # Chat ferma da questi minuti senza un esito: avviso al responsabile con la conversazione
+    chat_inattivita_minuti: int = field(default_factory=lambda: int(_env("CHAT_INATTIVITA_MINUTI", "30")))
+
     meta_verify_token: str = field(default_factory=lambda: _env("META_VERIFY_TOKEN"))
     meta_app_secret: str = field(default_factory=lambda: _env("META_APP_SECRET"))
     meta_page_access_token: str = field(default_factory=lambda: _env("META_PAGE_ACCESS_TOKEN"))

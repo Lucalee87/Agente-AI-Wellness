@@ -83,6 +83,26 @@ CREATE TABLE IF NOT EXISTS staff_notifications (
     error TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_staff_pending ON staff_notifications (status, created_at);
+
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT NOT NULL UNIQUE,        -- identifica la chat nel browser del cliente
+    lead_id INTEGER NOT NULL REFERENCES leads(id),
+    nome TEXT,                         -- nome scritto dal cliente all'avvio della chat
+    created_at TEXT NOT NULL,
+    last_activity_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'aperta'   -- aperta | conclusa | scaduta
+);
+CREATE INDEX IF NOT EXISTS idx_chat_lead ON chat_sessions (lead_id);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL REFERENCES chat_sessions(id),
+    role TEXT NOT NULL,                -- apertura | user | assistant
+    content TEXT NOT NULL,             -- blocchi del messaggio (JSON)
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_chat_messages ON chat_messages (session_id, id);
 """
 
 # Stati possibili di un lead
@@ -95,6 +115,7 @@ UNREACHABLE = "unreachable"    # tentativi esauriti
 INVALID = "invalid"            # numero errato
 DO_NOT_CALL = "do_not_call"    # ha chiesto di non essere più contattato
 STAFF_CALLBACK = "staff_callback"  # da richiamare a mano dal responsabile del centro
+CHAT = "chat"                  # conversazione in chat in corso
 
 _lock = threading.RLock()
 _conn: sqlite3.Connection | None = None

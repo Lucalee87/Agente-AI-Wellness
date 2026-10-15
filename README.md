@@ -1,6 +1,9 @@
-# Agente AI Wellness 📞💪
+# Agente AI Wellness 📞💬💪
 
-Un agente vocale AI che **chiama in automatico i lead** arrivati da Meta Ads, Google Ads o dai link che mandi in DM, e **prenota la consulenza** nei tuoi centri fitness.
+Un agente AI che **contatta in automatico i lead** arrivati da Meta Ads, Google Ads o dai link che mandi in DM, e **prenota la consulenza** nei tuoi centri fitness. Può lavorare in due modi (`MODALITA_CONTATTO`):
+
+- **chat** 💬: appena il cliente invia il modulo si apre una **chat sul sito** con l'assistente (stesso nome, stesso copione). Vedi [Chat dopo il modulo](#chat-dopo-il-modulo).
+- **telefono** 📞: l'assistente **chiama** il lead entro pochi secondi.
 
 ```
  Meta Lead Ads ─┐
@@ -19,8 +22,8 @@ Un agente vocale AI che **chiama in automatico i lead** arrivati da Meta Ads, Go
    - **Google Ads** (modulo per i lead) → `POST /webhooks/google`
    - **Link per i DM / bio / sito** → pagina `GET /consulenza?centro=napoli-centro&src=ig_dm`
    - **Qualsiasi altro strumento** (ManyChat, Zapier, Make, CRM) → `POST /webhooks/lead`
-2. **Chiama entro pochi secondi** (solo negli orari consentiti, es. lun–sab 9:00–20:30).
-3. Durante la chiamata l'agente (Claude):
+2. **Apre la chat** appena il cliente invia il modulo, oppure **chiama entro pochi secondi** (solo negli orari consentiti, es. lun–sab 9:00–20:30).
+3. Durante la conversazione l'agente (Claude):
    - chiede l'obiettivo del cliente e spiega la consulenza;
    - controlla gli **orari liberi reali** del centro e propone 2–3 opzioni;
    - **prenota** lo slot (niente doppie prenotazioni) e comunica l'indirizzo;
@@ -48,7 +51,28 @@ Con `ANTHROPIC_API_KEY` impostata nel `.env`:
 python -m app.simulate --nome "Marco" --centro napoli-centro
 ```
 
-Scrivi tu le risposte del cliente: l'agente risponde con lo stesso prompt e gli stessi strumenti (disponibilità, prenotazione) che userà al telefono. Ottimo per rifinire il tono prima di spendere in telefonate.
+Scrivi tu le risposte del cliente: l'agente risponde con lo stesso prompt e gli stessi strumenti (disponibilità, prenotazione) che userà al telefono. Ottimo per rifinire il tono prima di spendere in telefonate. Aggiungi `--chat` per provare la versione scritta, quella della chat sul sito.
+
+## Chat dopo il modulo
+
+Con `MODALITA_CONTATTO=chat` (e `ANTHROPIC_API_KEY` impostata) Vittoria non telefona: **scrive in chat** appena il cliente invia il modulo. Il copione è lo stesso della chiamata (obiettivo → sede → spiegazione della valutazione → fascia oraria → due orari alla volta → conferma), con gli stessi strumenti: prenotazione sul calendario, SMS/email di conferma e promemoria, email al responsabile con **tutta la conversazione**. Cambia solo lo stile: messaggi brevi, date scritte come "mercoledì 15 ottobre alle 18:10".
+
+Come si apre la chat:
+
+1. **Dal modulo sul sito / nei DM** (`/consulenza`): all'invio il cliente passa direttamente alla chat, già salutato per nome.
+2. **Dal modulo Meta (Lead Ads)**: Meta non può aprire una chat dentro il modulo, ma alla fine del modulo c'è la **schermata di completamento**. Lì imposta il pulsante **"Visita il sito web"** con il link
+   ```
+   https://TUO-DOMINIO/chat?src=meta
+   ```
+   (per un modulo dedicato a una sede: `https://TUO-DOMINIO/chat?src=meta&centro=casoria`). Il cliente scrive nome e numero di telefono (sono gli stessi del modulo: il telefono li propone da solo) e la chat si collega al suo lead; se il lead da Meta non è ancora arrivato, i dati del modulo si aggiungono appena arriva. Testo consigliato per la schermata: titolo "Grazie! Prenota subito la tua valutazione", descrizione "Vittoria, la nostra consulente virtuale, ti aiuta in chat a scegliere giorno e orario.", pulsante "Prenota in chat".
+   In alternativa puoi fare annunci con destinazione **sito web** verso `https://TUO-DOMINIO/consulenza?src=meta`: in questo caso il modulo è il nostro e la chat si apre da sola all'invio.
+
+Chi non viene raggiunto non si perde:
+- se il cliente **non apre la chat** entro `CHAT_ATTESA_MINUTI` (default 30), il responsabile riceve l'email "CHAT NON APERTA – DA RICONTATTARE";
+- se **lascia la chat a metà** per `CHAT_INATTIVITA_MINUTI` (default 30), il responsabile riceve "CHAT INTERROTTA – DA RICONTATTARE" con la conversazione;
+- se chiede di **essere ricontattato più tardi**, l'avviso va al responsabile con il giorno e l'ora indicati.
+
+Le conversazioni si leggono anche in `/admin/chat/ID-DEL-LEAD`. Il primo messaggio della chat si modifica in `config/centri.yaml` (`apertura_chat`).
 
 ## Personalizzazione
 
@@ -156,12 +180,14 @@ app/
   dialer.py         coda chiamate e gestione esito di fine chiamata
   centers.py        centri, orari, slot liberi
   calendars/        calendari esterni (Google Calendar; in futuro il gestionale)
-  voice/prompt.py   copione dell'agente
+  chat.py           chat sul sito dopo il modulo (stesso copione e strumenti)
+  llm.py            chiamata a Claude con gli strumenti (chat e simulatore)
+  voice/prompt.py   copione dell'agente (versione telefono e versione chat)
   voice/tools.py    strumenti: trova_disponibilita, prenota_consulenza, registra_esito
   voice/vapi.py     integrazione Vapi
   simulate.py       simulatore testuale con Claude
 config/centri.yaml  configurazione dei centri
-templates/          pagina /consulenza
+templates/          pagina /consulenza e chat /chat
 tests/              test automatici
 ```
 

@@ -4,8 +4,8 @@ Esempi: un cliente chiede di essere ricontattato dal responsabile, una nuova
 valutazione prenotata, una prenotazione annullata, un cliente non interessato,
 un lead irraggiungibile.
 
-Gli eventi che nascono durante una telefonata vengono messi in coda e inviati in
-un'unica email a fine chiamata, insieme alla trascrizione della conversazione.
+Gli eventi che nascono durante una telefonata (o una chat) vengono messi in coda e
+inviati in un'unica email a fine conversazione, insieme alla trascrizione.
 Se il resoconto della chiamata non arriva, la coda li invia comunque dopo un po'.
 Destinatari ed eventi si configurano in config/centri.yaml (`responsabile` per
 centro e sezione `notifiche_staff`).
@@ -23,7 +23,7 @@ from . import sms as sms_channel
 log = logging.getLogger(__name__)
 
 # Eventi che non nascono in una telefonata in corso: si inviano subito
-IMMEDIATE_EVENTS = {"lead_irraggiungibile"}
+IMMEDIATE_EVENTS = {"lead_irraggiungibile", "chat_non_aperta"}
 # Dopo quanto inviare comunque gli avvisi se il resoconto della chiamata non arriva
 STALE_MINUTES = 30
 
@@ -33,6 +33,8 @@ TITOLI = {
     "prenotazione_annullata": "PRENOTAZIONE ANNULLATA",
     "lead_irraggiungibile": "LEAD NON RAGGIUNGIBILE",
     "esito_chiamata": "NON INTERESSATO",
+    "chat_interrotta": "CHAT INTERROTTA - DA RICONTATTARE",
+    "chat_non_aperta": "CHAT NON APERTA - DA RICONTATTARE",
 }
 
 ESITI = {
@@ -42,8 +44,8 @@ ESITI = {
 }
 
 # L'evento più importante dà il titolo all'email quando ce ne sono più di uno
-PRIORITA = ["ricontatto_responsabile", "prenotazione_annullata", "consulenza_prenotata", "esito_chiamata",
-            "lead_irraggiungibile"]
+PRIORITA = ["ricontatto_responsabile", "chat_interrotta", "prenotazione_annullata", "consulenza_prenotata",
+            "esito_chiamata", "lead_irraggiungibile", "chat_non_aperta"]
 
 
 def _tipo_label(tipo: str | None) -> str:
@@ -68,6 +70,10 @@ def _event_lines(event: str, lead: dict, payload: dict) -> list[str]:
         righe.append(f"Esito: {ESITI.get(payload.get('esito'), payload.get('esito'))}")
     if event == "lead_irraggiungibile":
         righe.append(f"Nessuna risposta dopo {lead.get('attempts', 0)} tentativi di chiamata")
+    if event == "chat_interrotta":
+        righe.append("Il cliente ha lasciato la chat prima di concludere: da ricontattare per fissare la valutazione")
+    if event == "chat_non_aperta":
+        righe.append("Il cliente ha compilato il modulo ma non ha aperto la chat: da ricontattare")
     if payload.get("note"):
         righe.append(f"Note: {payload['note']}")
     return righe
@@ -87,7 +93,8 @@ def _format_transcript(transcript: str) -> str:
 
 
 def compose(events: list[tuple[str, dict]], lead: dict, transcript: str | None = None,
-            recording_url: str | None = None, summary: str | None = None) -> tuple[str, str]:
+            recording_url: str | None = None, summary: str | None = None,
+            canale: str = "telefono") -> tuple[str, str]:
     """Restituisce (oggetto, testo) dell'email per uno o più eventi dello stesso cliente."""
     cfg = centers.load_config()
     centro = cfg.centri.get(lead.get("centro_id") or "")
@@ -110,11 +117,12 @@ def compose(events: list[tuple[str, dict]], lead: dict, transcript: str | None =
     for event, payload in events:
         righe.extend(_event_lines(event, lead, payload))
     if summary:
-        righe += ["", f"Riepilogo della chiamata: {summary}"]
+        righe += ["", f"Riepilogo della {'conversazione' if canale == 'chat' else 'chiamata'}: {summary}"]
     if recording_url:
         righe += ["", f"Registrazione: {recording_url}"]
     if transcript:
-        righe += ["", "Trascrizione della chiamata:", _format_transcript(transcript)]
+        titolo_trascrizione = "Conversazione in chat:" if canale == "chat" else "Trascrizione della chiamata:"
+        righe += ["", titolo_trascrizione, _format_transcript(transcript)]
     subject = f"{titolo} - {lead.get('nome') or lead.get('telefono', '')} - {sede}"
     return subject, "\n".join(righe)
 
@@ -148,7 +156,7 @@ def _recipients(lead: dict) -> dict:
 
 
 def flush_for_lead(lead_id: int, transcript: str | None = None, recording_url: str | None = None,
-                   summary: str | None = None) -> int:
+                   summary: str | None = None, canale: str = "telefono") -> int:
     """Invia in un'unica email gli eventi in attesa per questo cliente. Restituisce 1 se ha inviato."""
     with db.tx() as c:
         rows = [dict(r) for r in c.execute(
@@ -158,7 +166,7 @@ def flush_for_lead(lead_id: int, transcript: str | None = None, recording_url: s
         return 0
     lead = db.get_lead(lead_id) or {}
     events = [(r["event"], json.loads(r["payload"] or "{}")) for r in rows]
-    subject, text = compose(events, lead, transcript, recording_url, summary)
+    subject, text = compose(events, lead, transcript, recording_url, summary, canale)
     conf = centers.load_config().notifiche_staff or {}
     to = _recipients(lead)
     status, error, sent = "inviato", None, 0

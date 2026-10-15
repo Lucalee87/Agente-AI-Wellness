@@ -29,7 +29,11 @@
     <p class="lead">Abbiamo ricevuto la tua richiesta. {{ brand.nome_assistente }}, la nostra assistente, ti chiamerà a breve per fissare la {{ brand.nome_consulenza or 'consulenza' }}{% if not calling_now %} (le chiamate partono negli orari di apertura){% endif %}.</p>
   {% else %}
     <h1>Prenota la tua {{ brand.nome_consulenza or 'consulenza' }} gratuita</h1>
+    {% if modalita_chat %}
+    <p class="lead">Lascia i tuoi dati: subito dopo {{ brand.nome_assistente }}, la nostra assistente, ti aiuta in chat a trovare l'orario giusto per te.</p>
+    {% else %}
     <p class="lead">Lascia i tuoi dati: ti richiamiamo noi in pochi minuti per trovare l'orario giusto per te.</p>
+    {% endif %}
     {% if error %}<div class="error">{{ error }}</div>{% endif %}
     <form method="post">
       <input type="hidden" name="src" value="{{ src }}">
@@ -48,8 +52,8 @@
       <label for="obiettivo">Il tuo obiettivo (facoltativo)</label>
       <input id="obiettivo" name="obiettivo" placeholder="Es. perdere 5 kg, tonificare..." value="{{ form.obiettivo or '' }}">
       <label class="check"><input type="checkbox" name="consenso" value="1" required>
-        Acconsento a essere ricontattato telefonicamente, anche tramite un'assistente virtuale, per fissare l'appuntamento, e al trattamento dei miei dati per questa finalità.</label>
-      <button type="submit">Richiamami</button>
+        Acconsento a essere ricontattato{% if not modalita_chat %} telefonicamente{% endif %}, anche tramite un'assistente virtuale, per fissare l'appuntamento, e al trattamento dei miei dati per questa finalità.</label>
+      <button type="submit">{% if modalita_chat %}Continua in chat{% else %}Richiamami{% endif %}</button>
     </form>
   {% endif %}
   </div>

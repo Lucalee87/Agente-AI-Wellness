@@ -10,11 +10,11 @@ from contextlib import asynccontextmanager
 from html import escape
 
 from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
-from . import centers, db, dialer
+from . import centers, chat, db, dialer
 from .config import ROOT, settings
 from .ingest import google, meta
 from .leads import LeadIn, create_lead
@@ -56,6 +56,7 @@ def _landing_ctx(request: Request, **extra) -> dict:
         "brand": cfg.brand,
         "centri": list(cfg.centri.values()),
         "form": {},
+        "modalita_chat": settings.modalita_contatto == "chat",
         **extra,
     }
 
@@ -71,7 +72,7 @@ async def consulenza_submit(request: Request):
     src = (form.get("src") or "dm")[:40]
     if form.get("consenso") != "1":
         ctx = _landing_ctx(request, centro=form.get("centro", ""), src=src, form=form,
-                           error="Per richiamarti ci serve il tuo consenso.")
+                           error="Per contattarti ci serve il tuo consenso.")
         return templates.TemplateResponse(request, "consulenza.html", ctx, status_code=400)
     result = create_lead(LeadIn(
         source="dm" if src.startswith(("dm", "ig", "fb", "wa", "tiktok")) else "web",
@@ -86,8 +87,69 @@ async def consulenza_submit(request: Request):
         ctx = _landing_ctx(request, centro=form.get("centro", ""), src=src, form=form,
                            error="Il numero di telefono non sembra valido, puoi controllarlo?")
         return templates.TemplateResponse(request, "consulenza.html", ctx, status_code=400)
+    if settings.modalita_contatto == "chat" and _can_chat(result.lead_id):
+        # Il modulo è inviato: si apre subito la chat con Vittoria
+        token = chat.start_session(result.lead_id, form.get("nome"))
+        return RedirectResponse(f"/chat?t={token}", status_code=303)
     ctx = _landing_ctx(request, done=True, nome=form.get("nome"), calling_now=centers.is_calling_time())
     return templates.TemplateResponse(request, "consulenza.html", ctx)
+
+
+# --------------------------------------------------------------------------- #
+# Chat con Vittoria (si apre all'invio del modulo)
+# --------------------------------------------------------------------------- #
+
+# Lead con cui non si apre la chat (ha chiesto di non essere ricontattato, numero errato)
+_NO_CHAT = (db.DO_NOT_CALL, db.INVALID)
+
+
+def _can_chat(lead_id: int) -> bool:
+    lead = db.get_lead(lead_id) or {}
+    return lead.get("status") not in _NO_CHAT
+
+
+@app.get("/chat", response_class=HTMLResponse)
+def chat_page(request: Request, t: str = "", centro: str = "", src: str = "meta"):
+    session = chat.get_session(t) if t else None
+    ctx = _landing_ctx(request, token=session["token"] if session else "", centro=centro, src=src[:40])
+    return templates.TemplateResponse(request, "chat.html", ctx)
+
+
+@app.post("/chat/inizia")
+async def chat_start(request: Request):
+    """Avvio della chat dal link del modulo Meta: il cliente scrive nome e numero lasciati nel modulo."""
+    p = await request.json()
+    if not p.get("consenso"):
+        raise HTTPException(400, "Per continuare ci serve il tuo consenso.")
+    src = str(p.get("src") or "meta")[:40]
+    result = create_lead(LeadIn(
+        source="chat",
+        telefono=p.get("telefono"),
+        nome=p.get("nome"),
+        centro_id=p.get("centro") or None,
+        extra={"src": src, "consenso": True},
+    ))
+    if result.lead_id is None:
+        raise HTTPException(400, "Il numero di telefono non sembra valido, puoi controllarlo?")
+    if not _can_chat(result.lead_id):
+        return {"token": None, "messaggio": "Grazie, abbiamo ricevuto la tua richiesta."}
+    return {"token": await asyncio.to_thread(chat.start_session, result.lead_id, p.get("nome"))}
+
+
+@app.get("/chat/api/{token}")
+def chat_history(token: str):
+    session = chat.get_session(token)
+    if session is None:
+        raise HTTPException(404, "Chat non trovata.")
+    return {"messaggi": chat.visible_messages(session["id"]), "conclusa": session["status"] != "aperta"}
+
+
+@app.post("/chat/api/{token}")
+def chat_message(token: str, body: dict):
+    try:
+        return chat.reply(token, str(body.get("testo") or ""))
+    except chat.ChatError as e:
+        raise HTTPException(400, str(e))
 
 
 # --------------------------------------------------------------------------- #
@@ -223,6 +285,16 @@ def _leads_rows(limit: int = 300) -> list[dict]:
             (limit,),
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+@app.get("/admin/chat/{lead_id}", response_class=PlainTextResponse, dependencies=[Depends(require_admin)])
+def admin_chat(lead_id: int):
+    with db.tx() as c:
+        sessions = [dict(r) for r in c.execute(
+            "SELECT * FROM chat_sessions WHERE lead_id = ? ORDER BY id", (lead_id,))]
+    if not sessions:
+        raise HTTPException(404, "Nessuna chat per questo lead.")
+    return "\n\n".join(f"Chat del {s['created_at']} ({s['status']})\n{chat.transcript(s['id'])}" for s in sessions)
 
 
 @app.get("/admin/leads.json", dependencies=[Depends(require_admin)])

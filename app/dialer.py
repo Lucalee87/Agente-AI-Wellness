@@ -4,7 +4,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import calendars, centers, db, leads, messaging
+from . import calendars, centers, chat, db, leads, messaging
 from .config import settings
 from .messaging import staff
 from .voice import vapi
@@ -73,6 +73,11 @@ def tick() -> int:
         staff.flush_stale()
     except Exception:
         log.exception("Errore nell'invio dei messaggi")
+    if settings.modalita_contatto == "chat":
+        # Niente chiamate automatiche: Vittoria lavora in chat, il responsabile richiama chi resta indietro
+        chat.close_idle()
+        chat.flag_unopened()
+        return 0
     if not centers.is_calling_time():
         return 0
     free = settings.max_concurrent_calls - active_calls()
@@ -136,7 +141,7 @@ def handle_end_of_call(lead_id: int, message: dict) -> None:
 
 
 async def run_forever() -> None:
-    log.info("Coda chiamate avviata (provider: %s)", settings.voice_provider)
+    log.info("Coda avviata (contatto: %s, provider voce: %s)", settings.modalita_contatto, settings.voice_provider)
     while True:
         try:
             await asyncio.to_thread(tick)

@@ -8,6 +8,7 @@ import logging
 from datetime import date
 
 from .. import calendars, centers, db, leads, messaging
+from ..config import settings
 
 log = logging.getLogger(__name__)
 
@@ -194,9 +195,9 @@ def _registra_esito(lead: dict, args: dict) -> str:
         db.update_lead(lead["id"], summary=note)
     current = db.get_lead(lead["id"]) or lead
     if current["status"] == db.STAFF_CALLBACK:
-        return "Esito registrato: la persona verrà richiamata dal responsabile. Saluta e chiudi la chiamata."
+        return "Esito registrato: la persona verrà richiamata dal responsabile. Saluta e chiudi la conversazione."
     if esito == "prenotato" or current["status"] == db.BOOKED:
-        return "Esito registrato. Saluta cordialmente e chiudi la chiamata."
+        return "Esito registrato. Saluta cordialmente e chiudi la conversazione."
     if esito == "richiamare":
         when = None
         if args.get("richiamare_il"):
@@ -204,11 +205,17 @@ def _registra_esito(lead: dict, args: dict) -> str:
                 when = centers.parse_local(args["richiamare_il"])
             except ValueError:
                 pass
+        if settings.modalita_contatto == "chat":
+            # Senza chiamate automatiche, a ricontattare la persona è il responsabile del centro
+            quando = centers.format_it(when) if when else "quando preferisce (non indicato)"
+            db.update_lead(lead["id"], status=db.STAFF_CALLBACK, next_attempt_at=None)
+            leads.notify("ricontatto_responsabile", lead["id"], fascia_oraria=quando, note=note)
+            return "Ricontatto pianificato: la persona verrà ricontattata dal responsabile. Saluta e chiudi la conversazione."
         if when is None or when < centers.local_now():
             leads.schedule_retry(lead["id"], current["attempts"])
         else:
             leads.schedule_callback(lead["id"], when)
-        return "Richiamata pianificata. Saluta e chiudi la chiamata."
+        return "Richiamata pianificata. Saluta e chiudi la conversazione."
     status = {
         "non_interessato": db.NOT_INTERESTED,
         "numero_errato": db.INVALID,
@@ -217,7 +224,7 @@ def _registra_esito(lead: dict, args: dict) -> str:
     if status:
         db.update_lead(lead["id"], status=status, next_attempt_at=None)
         leads.notify("esito_chiamata", lead["id"], esito=esito)
-    return "Esito registrato. Saluta e chiudi la chiamata."
+    return "Esito registrato. Saluta e chiudi la conversazione."
 
 
 def _annulla_prenotazione(lead: dict, args: dict) -> str:

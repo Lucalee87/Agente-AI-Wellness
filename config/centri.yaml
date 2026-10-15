@@ -10,6 +10,8 @@ brand:
   # Prima frase della chiamata. {saluto} diventa "Buongiorno Maria" / "Buonasera Maria"
   # (oppure solo "Buongiorno" / "Buonasera" se il nome non è noto)
   apertura: "{saluto}, sono Vittoria, la consulente virtuale di MIFIT. La chiamo perché ha richiesto informazioni per iniziare un percorso nel nostro centro. Ha due minuti da dedicarmi per prenotare una valutazione gratuita?"
+  # Primo messaggio della chat che si apre dopo l'invio del modulo (stessi segnaposto)
+  apertura_chat: "{saluto}, sono Vittoria, la consulente virtuale di MIFIT. Grazie per aver richiesto informazioni per iniziare un percorso nel nostro centro! Ha due minuti da dedicarmi per prenotare una valutazione gratuita?"
   # Come si chiama l'appuntamento che l'agente deve fissare
   nome_consulenza: "valutazione dello stato di forma"
   offerta: "una visita completamente gratuita in cui condividiamo insieme il punto di partenza e capiamo qual è il percorso giusto per la persona"
@@ -80,12 +82,14 @@ messaggi:
     ore_prima: "Promemoria: oggi la sua valutazione gratuita - MIFIT"
 
 # Avvisi al responsabile del centro (SMS ed email) per gli eventi importanti
-# L'email parte a fine chiamata e contiene anche la trascrizione della conversazione.
+# L'email parte a fine chiamata (o a fine chat) e contiene anche la trascrizione della conversazione.
 notifiche_staff:
   canali: [email]
   # ricontatto_responsabile = il cliente non ha trovato un orario e va richiamato a mano
   # esito_chiamata = non interessato, numero errato, non chiamare più
-  eventi: [ricontatto_responsabile, consulenza_prenotata, prenotazione_annullata, lead_irraggiungibile, esito_chiamata]
+  # chat_interrotta = il cliente ha lasciato la chat senza concludere; chat_non_aperta = non ha mai aperto la chat
+  eventi: [ricontatto_responsabile, consulenza_prenotata, prenotazione_annullata, lead_irraggiungibile, esito_chiamata,
+           chat_interrotta, chat_non_aperta]
   # Destinatario usato quando la sede del cliente non è ancora nota
   responsabile:
     email: "mifitassistenza@gmail.com"
